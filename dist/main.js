@@ -450,7 +450,7 @@
       { value: "AZ", text: "Arizona" }, { value: "AR", text: "Arkansas" },
       { value: "CA", text: "California" }, { value: "CO", text: "Colorado" },
       { value: "CT", text: "Connecticut" }, { value: "DE", text: "Delaware" },
-      { value: "DC", text: "District of Columbia" }, { value: "FL", text: "Florida" },
+      { value: "DC", text: "District of Columbia" }, { value: "FL", text: "Flo-rida" },
       { value: "GA", text: "Georgia" }, { value: "HI", text: "Hawaii" },
       { value: "ID", text: "Idaho" }, { value: "IL", text: "Illinois" },
       { value: "IN", text: "Indiana" }, { value: "IA", text: "Iowa" },
