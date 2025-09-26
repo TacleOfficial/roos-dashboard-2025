@@ -1,0 +1,13 @@
+name: Purge jsDelivr cache (main branch)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dist/main.js'
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge branch URL
+        run: |
+          curl -sI "https://purge.jsdelivr.net/gh/TacleOfficial/roos-dashboard-2025@main/dist/main.js"
