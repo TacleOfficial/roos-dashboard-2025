@@ -67,7 +67,14 @@
     array(v) {
       if (Array.isArray(v)) return v.join(', ');
       return v ?? '';
+    },
+
+    boolYesNo(v) {
+      if (v === true || v === 'true' || v === 1 || v === '1') return 'Yes';
+      if (v === false || v === 'false' || v === 0 || v === '0') return 'No';
+      return v == null ? '' : String(v);
     }
+    
   };
 
   const DEFAULT_EMPTY = '—'; // set to "Not Available" if you prefer
