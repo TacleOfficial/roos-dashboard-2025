@@ -436,8 +436,11 @@
       initUserHeaderUI(window.portalCtx);   // ← add this      
       await loadJobsForUser(db, user.uid); // visible to all users now
       await loadSamplesForUser(db, user.uid);   // ← add this line
+      await loadProducts(db);               // ← render products table
       wireSampleRowClicksOnce();
       wireModalCloseOnce();
+      wireProductRowClicksOnce();           // ← row → modal
+      wireProductModalCloseOnce();          // ← modal close wiring
       const prForm = document.querySelector('[data-pr="form"]');
       if (prForm && prForm.__loadProfile) prForm.__loadProfile(user.uid);  // ← load data
     });
@@ -700,7 +703,252 @@
         (o.text || '').toLowerCase() === needle
     );
     if (hit) sel.value = hit.value;
+    
   }
+
+
+
+  // ---------- PRODUCTS TABLE HELPERS ----------
+  function formatProductCell(prop, raw) {
+    if (raw == null) return '';
+    if (prop === 'inStock') return fmt.boolYesNo(raw);
+    if (Array.isArray(raw)) return fmt.array(raw);
+    if (typeof raw === 'object' && raw.toDate) return fmt.date(raw);
+    if (typeof raw === 'object') return JSON.stringify(raw);
+    return String(raw);
+  }
+
+  function setImgProp(row, key, url) {
+    const img = row.querySelector(`[data-prop-img="${key}"]`);
+    if (!img) return;
+    if (!url) {
+      img.setAttribute('src', '');
+      img.setAttribute('alt', '');
+      return;
+    }
+    img.setAttribute('src', url);
+    // try to form a descriptive alt using nearby text
+    const name = (row.querySelector('[data-prop="formalName"]')?.textContent || '').trim();
+    img.setAttribute('alt', (name ? name + ' – ' : '') + 'Product image');
+    img.onerror = () => { img.onerror = null; img.setAttribute('src', ''); };
+  }
+
+  function buildProductRow(prod) {
+    const tbody = qs('#products-tbody');
+    const tplRow = tbody ? qs('[data-row="template"]', tbody) : null;
+    if (!tbody || !tplRow) { console.warn('[products] missing #products-tbody or template'); return null; }
+
+    const row = tplRow.cloneNode(true);
+    row.removeAttribute('data-row');
+    row.style.display = '';
+
+    // Text cells
+    qsa('[data-prop]', row).forEach(el => {
+      const prop = el.getAttribute('data-prop');
+      let val = prod[prop];
+
+      // accept common alternative keys (be forgiving with your schema)
+      if (val == null) {
+        if (prop === 'formalName') val = prod.formalName ?? prod.name ?? prod.title ?? '';
+        else if (prop === 'vendor') val = prod.vendor ?? prod.vendorName ?? prod.brand ?? '';
+        else if (prop === 'category') val = prod.category ?? prod.categories ?? '';
+        else if (prop === 'collection') val = prod.collection ?? prod.collections ?? prod.collectionName ?? '';
+        else if (prop === 'description') val = prod.description ?? prod.desc ?? '';
+        else if (prop === 'color') val = prod.color ?? prod.colour ?? '';
+      }
+
+      // normalize arrays to CSV
+      if (Array.isArray(val)) val = val.filter(Boolean);
+      const display = formatProductCell(prop, val);
+
+      if (isEmptyValue(display)) {
+        el.textContent = fallbackFor(el);
+        el.classList.add('is-empty');
+      } else {
+        el.textContent = String(display);
+        el.classList.remove('is-empty');
+      }
+    });
+
+    // Image cell
+    let imageUrl =
+      prod.image ||
+      (Array.isArray(prod.images) ? (typeof prod.images[0] === 'string' ? prod.images[0] : prod.images[0]?.url) : '') ||
+      prod.media?.hero ||
+      prod.heroImage || '';
+    setImgProp(row, 'image', imageUrl);
+
+    return row;
+  }
+
+  async function loadProducts(db, { limit = 200 } = {}) {
+    const tbody = qs('#products-tbody');
+    const tplRow = tbody ? qs('[data-row="template"]', tbody) : null;
+    if (!tbody || !tplRow) {
+      console.warn('[products] missing #products-tbody or template; skipping render');
+      return;
+    }
+
+    // Clear previous
+    qsa('#products-tbody > tr:not([data-row="template"])').forEach(tr => tr.remove());
+
+    // Pull from Firestore
+    const snap = await db.collection('exclusive_products')
+      .orderBy('updatedAt', 'desc') // fallback to name if you don’t have updatedAt on all docs
+      .limit(limit)
+      .get()
+      .catch(async err => {
+        // If updatedAt doesn’t exist on every doc, fall back to name to avoid “no index” edge cases.
+        console.warn('[products] falling back to name order', err);
+        return db.collection('exclusive_products').orderBy('formalName').limit(limit).get();
+      });
+
+    const frag = document.createDocumentFragment();
+    snap.docs.forEach(doc => {
+      const data = { id: doc.id, ...(doc.data() || {}) };
+      const row = buildProductRow(data);
+      if (row) {
+        row.setAttribute('data-id', doc.id);         // for modal opening
+        row.setAttribute('data-col', 'exclusive_products'); // collection tag
+        frag.appendChild(row);
+      }
+    });
+
+    tbody.appendChild(frag);
+  }
+  // ---------- /PRODUCTS TABLE HELPERS ----------
+
+
+
+  // ---------- PRODUCT MODAL ----------
+  function pd$(sel, r = document) { return r.querySelector(sel); }
+  function pdShow(el) { if (el) el.style.display = 'block'; }
+  function pdHide(el) { if (el) el.style.display = 'none'; }
+  function pdSetText(el, v) { if (el) el.textContent = (v ?? '—'); }
+  function pdSetSrc(el, v) { if (el) el.setAttribute('src', v || ''); }
+
+  function openProductModal() {
+    const m = pd$('[data-modal="product"]');
+    if (!m) { console.warn('[product modal] container not found'); return; }
+    pdShow(m);
+  }
+  function closeProductModal() { pdHide(pd$('[data-modal="product"]')); }
+
+  function wireProductModalCloseOnce() {
+    const modal = pd$('[data-modal="product"]');
+    if (!modal || modal.dataset.pdInit === '1') return;
+    modal.dataset.pdInit = '1';
+
+    const overlay = pd$('[data-md="close"]', modal);
+    const card = pd$('[data-md="card"]', modal);
+    overlay?.addEventListener('click', () => closeProductModal());
+    card?.addEventListener('click', e => e.stopPropagation());
+
+    modal.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-md="close"]');
+      if (btn && btn !== overlay) closeProductModal();
+    });
+  }
+
+  function toDisplayValue(key, v) {
+    if (key === 'inStock') return fmt.boolYesNo(v);
+    if (Array.isArray(v)) return v.filter(Boolean).join(', ');
+    if (typeof v === 'object' && v?.toDate) return fmt.date(v);
+    if (v == null) return '';
+    return String(v);
+  }
+
+  // Generic painter: fills anything with data-pd / data-pd-rich / data-pd-img
+  function paintProductModalFromDoc(modal, prod) {
+    // text nodes
+    qsa('[data-pd]', modal).forEach(el => {
+      const key = el.getAttribute('data-pd');
+      const raw = prod[key] ?? (
+        // be forgiving for common aliases
+        key === 'formalName' ? (prod.formalName ?? prod.name ?? prod.title) :
+        key === 'vendor'     ? (prod.vendor ?? prod.vendorName ?? prod.brand) :
+        key === 'collection' ? (prod.collection ?? prod.collections ?? prod.collectionName) :
+        key === 'description'? (prod.description ?? prod.desc) :
+        prod[key]
+      );
+      const val = toDisplayValue(key, raw);
+      if (isEmptyValue(val)) {
+        el.textContent = fallbackFor(el);
+        el.classList.add('is-empty');
+      } else {
+        el.textContent = val;
+        el.classList.remove('is-empty');
+      }
+    });
+
+    // rich text (sanitized clone)
+    qsa('[data-pd-rich]', modal).forEach(el => {
+      const key = el.getAttribute('data-pd-rich');
+      const html = prod[key] ?? '';
+      mdSetRichText(el, typeof html === 'string' ? html : '');
+    });
+
+    // images
+    qsa('[data-pd-img]', modal).forEach(el => {
+      const key = el.getAttribute('data-pd-img');
+      let url = prod[key] ||
+        (Array.isArray(prod.images) ? (typeof prod.images[0] === 'string' ? prod.images[0] : prod.images[0]?.url) : '') ||
+        prod.media?.hero || prod.heroImage || '';
+      if (!url) { el.setAttribute('src',''); el.setAttribute('alt',''); return; }
+      el.setAttribute('src', url);
+      const name = (prod.formalName ?? prod.name ?? prod.title ?? 'Product image');
+      el.setAttribute('alt', name + ' – image');
+      el.onerror = () => { el.onerror = null; el.setAttribute('src',''); };
+    });
+  }
+
+  async function loadAndShowProductModal({ db, productId }) {
+    const modal = pd$('[data-modal="product"]');
+    if (!modal) return;
+
+    // Reset quick fields to placeholders
+    qsa('[data-pd]', modal).forEach(el => { el.textContent = '—'; });
+    qsa('[data-pd-img]', modal).forEach(el => { el.setAttribute('src',''); el.setAttribute('alt',''); });
+    qsa('[data-pd-rich]', modal).forEach(el => { mdSetRichText(el, ''); });
+
+    // Fetch doc
+    const ref = db.collection('exclusive_products').doc(productId);
+    const snap = await ref.get();
+    if (!snap.exists) {
+      pdSetText(pd$('[data-pd="formalName"]', modal), 'Product not found');
+      openProductModal();
+      return;
+    }
+
+    const prod = { id: snap.id, ...(snap.data() || {}) };
+
+    // Paint known fields + any other `[data-pd*]` you’ve placed
+    paintProductModalFromDoc(modal, prod);
+
+    openProductModal();
+  }
+
+  function wireProductRowClicksOnce() {
+    if (window.__productsClickDelegated) return;
+    window.__productsClickDelegated = true;
+
+    document.addEventListener('click', (e) => {
+      const tr = e.target.closest('#products-tbody tr[data-id]:not([data-row="template"])');
+      if (!tr) return;
+      const productId = tr.getAttribute('data-id');
+      const ctx = window.portalCtx;
+      if (!productId || !ctx?.db) return;
+
+      console.debug('[products] open modal →', productId);
+      loadAndShowProductModal({ db: ctx.db, productId });
+    });
+
+    console.debug('[products] row click wired (global delegate)');
+  }
+  // ---------- /PRODUCT MODAL ----------
+
+
+
 
   // ---------- SAMPLES TABLE HELPERS (patched for additionalInfo) ----------
   function formatSampleByProp(prop, raw) {
@@ -849,6 +1097,7 @@
     }));
   }
   // ---------- /SAMPLES TABLE HELPERS ----------
+  
 
 
   // =================== SAMPLE MODAL SCRIPT (entire block) ==================
