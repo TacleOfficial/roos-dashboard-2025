@@ -492,7 +492,8 @@
       await preloadLookups(db);          // ← hydrate ID→Name maps first
       await loadJobsForUser(db, user.uid); // visible to all users now
       await loadSamplesForUser(db, user.uid);   // ← add this line
-      await loadProducts(db);               // ← render products table
+      //await loadProducts(db);               // ← render products table
+      await initProductsPager(db);          // ← pagination: render page 1 + wire controls
       wireSampleRowClicksOnce();
       wireModalCloseOnce();
       wireProductRowClicksOnce();           // ← row → modal
@@ -892,6 +893,138 @@
     tbody.appendChild(frag);
   }
   // ---------- /PRODUCTS TABLE HELPERS ----------
+
+
+  // ---------- PRODUCTS PAGINATION ----------
+const __prodPg = {
+  limit: 50,          // tune as you like (<= 200 is fine)
+  mode: 'updated',    // 'updated' -> orderBy('updatedAt','desc'); fallback: 'name'
+  page: 1,            // 1-based
+  anchors: [null],    // anchors[n-1] is the lastDoc cursor for page n
+  loading: false,
+};
+
+// Build a query with the current mode and optional startAfter doc
+function buildProductsQuery(db, startAfterDoc = null) {
+  let q;
+  if (__prodPg.mode === 'updated') {
+    q = db.collection('exclusive_products').orderBy('updatedAt', 'desc').limit(__prodPg.limit);
+  } else {
+    q = db.collection('exclusive_products').orderBy('formalName').limit(__prodPg.limit);
+  }
+  if (startAfterDoc) q = q.startAfter(startAfterDoc);
+  return q;
+}
+
+// Render one page. If pageIdx === 1 → no startAfter; else use anchors[pageIdx-2]
+async function renderProductsPage(db, pageIdx) {
+  if (__prodPg.loading) return;
+  __prodPg.loading = true;
+  try {
+    const tbody = qs('#products-tbody');
+    const tplRow = tbody ? qs('[data-row="template"]', tbody) : null;
+    if (!tbody || !tplRow) { console.warn('[products] missing tbody/template'); return; }
+
+    // pick anchor
+    const anchor = pageIdx > 1 ? __prodPg.anchors[pageIdx - 2] : null;
+
+    // attempt primary mode; on failure, fallback once to name
+    let snap;
+    try {
+      snap = await buildProductsQuery(db, anchor).get();
+    } catch (err) {
+      if (__prodPg.mode === 'updated') {
+        console.warn('[products] falling back to formalName order', err);
+        __prodPg.mode = 'name';
+        snap = await buildProductsQuery(db, anchor).get();
+      } else {
+        throw err;
+      }
+    }
+
+    // clear current rows
+    qsa('#products-tbody > tr:not([data-row="template"])').forEach(tr => tr.remove());
+
+    // paint rows
+    const frag = document.createDocumentFragment();
+    let lastDoc = null;
+    snap.docs.forEach(doc => {
+      const data = { id: doc.id, ...(doc.data() || {}) };
+      const row = buildProductRow(data);
+      if (row) {
+        row.setAttribute('data-id', doc.id);
+        row.setAttribute('data-col', 'exclusive_products');
+        frag.appendChild(row);
+      }
+      lastDoc = doc; // the last visible doc becomes the next page's anchor
+    });
+    tbody.appendChild(frag);
+
+    // update anchors + page index
+    // Ensure anchors has length >= pageIdx-1
+    while (__prodPg.anchors.length < pageIdx - 1) __prodPg.anchors.push(null);
+
+    // if we actually got results, set the anchor for this page
+    if (snap.size > 0) {
+      __prodPg.anchors[pageIdx - 1] = lastDoc || null; // lastDoc for page n
+      __prodPg.page = pageIdx;
+    } else {
+      // if requesting a page with no results, stay at current page
+      // (or bump down if we tried to go beyond end)
+    }
+
+    paintProductsPagerUI({ hasPrev: pageIdx > 1, hasNext: snap.size === __prodPg.limit });
+  } finally {
+    __prodPg.loading = false;
+  }
+}
+
+function paintProductsPagerUI({ hasPrev, hasNext }) {
+  const wrap = qs('#products-pager[data-pg]');
+  if (!wrap) return;
+  const btnPrev = qs('[data-pg="prev"]', wrap);
+  const btnNext = qs('[data-pg="next"]', wrap);
+  const info = qs('[data-pg="info"]', wrap);
+
+  if (btnPrev) btnPrev.disabled = !hasPrev;
+  if (btnNext) btnNext.disabled = !hasNext;
+
+  if (info) info.textContent = `Page ${__prodPg.page}${__prodPg.mode === 'name' ? ' · A→Z' : ''}`;
+}
+
+// one-time wiring for prev/next buttons
+function wireProductsPagerOnce(db) {
+  const wrap = qs('#products-pager[data-pg]');
+  if (!wrap || wrap.dataset.pgInit === '1') return;
+  wrap.dataset.pgInit = '1';
+
+  const btnPrev = qs('[data-pg="prev"]', wrap);
+  const btnNext = qs('[data-pg="next"]', wrap);
+
+  btnPrev?.addEventListener('click', async () => {
+    if (__prodPg.page <= 1) return;
+    const target = __prodPg.page - 1;
+    // we have anchors[target-1] already (lastDoc of target page)
+    await renderProductsPage(window.portalCtx.db, target);
+  });
+
+  btnNext?.addEventListener('click', async () => {
+    const target = __prodPg.page + 1;
+    // Use anchor of previous page (anchors[target-2])
+    await renderProductsPage(window.portalCtx.db, target);
+  });
+}
+
+// public init: resets pager + renders first page
+async function initProductsPager(db) {
+  __prodPg.page = 1;
+  __prodPg.anchors = [null];
+  __prodPg.mode = 'updated';
+  wireProductsPagerOnce(db);
+  await renderProductsPage(db, 1);
+}
+// ---------- /PRODUCTS PAGINATION ----------
+
 
 
 
