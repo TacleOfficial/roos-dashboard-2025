@@ -907,7 +907,7 @@ const PROD_FIELDS = {
   color: 'color', 
   
   // collections is an ARRAY of IDs in your docs:
-  collectionArr: 'collections', // ← array field (e.g. ["col_1","col_2"])
+  collectionArr: 'collection', // ← array field (e.g. ["col_1","col_2"])
   // (keep this too if some legacy docs had a single scalar)
   collection: 'collection',     // scalar fallback (optional)
 
