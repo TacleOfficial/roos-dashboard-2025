@@ -927,10 +927,9 @@ function buildProductsQuery(db, startAfterDoc = null) {
   const col = db.collection('exclusive_products');
 
   const hasSearch = !!__prodPg.search.q;
-  const qtext = normalizeSearchText(__prodPg.search.q);
-
   if (hasSearch && !__prodPg.search.activeField) {
-    __prodPg.search.activeField = PROD_FIELDS.nameLower || PROD_FIELDS.name;
+    // you don't have formalNameLower → prefer formalName
+    __prodPg.search.activeField = PROD_FIELDS.name; 
   }
 
   const orderField = hasSearch
@@ -942,36 +941,24 @@ function buildProductsQuery(db, startAfterDoc = null) {
     hasSearch ? undefined : (__prodPg.mode === 'updated' ? 'desc' : undefined)
   );
 
-  // === SCALAR filters (all with '==') ===
+  // filters (unchanged)...
   const f = __prodPg.filters;
-  if (f.vendorId)     q = q.where(PROD_FIELDS.vendor, '==', f.vendorId);
-  if (f.categoryId)   q = q.where(PROD_FIELDS.category, '==', f.categoryId);
-  if (f.colorId)      q = q.where(PROD_FIELDS.color, '==', f.colorId);
-
-  // COLLECTION filter (ARRAY field)
-  if (f.collectionId) {
-    // primary: array-contains on the array field
-    q = q.where(PROD_FIELDS.collectionArr, 'array-contains', f.collectionId);
-
-    // OPTIONAL fallback if you still have some scalar-only docs:
-    // q = q.where(PROD_FIELDS.collection, '==', f.collectionId);
-    // ^ You can't OR these in a single query—if you truly have mixed schema,
-    //   backfill a 'collections' array on all docs (recommended).
-  }
+  if (f.vendorId)   q = q.where(PROD_FIELDS.vendor, '==', f.vendorId);
+  if (f.categoryId) q = q.where(PROD_FIELDS.category, '==', f.categoryId);
+  if (f.colorId)    q = q.where(PROD_FIELDS.color, '==', f.colorId);
+  if (f.collectionId) q = q.where(PROD_FIELDS.collectionArr, 'array-contains', f.collectionId);
 
   // === Search prefix ===
   if (hasSearch) {
+    const qtext = normalizeSearchTextFor(orderField, __prodPg.search.q);
     q = q.startAt(qtext).endAt(qtext + '\uf8ff');
+    q.__qtext = qtext;           // annotate for debug
   }
 
   if (startAfterDoc) q = q.startAfter(startAfterDoc);
   q = q.limit(__prodPg.limit);
-
-  // annotate (optional)
   q.__hasSearch = hasSearch;
-  q.__qtext = qtext;
   q.__orderField = orderField;
-
   return q;
 }
 
@@ -1017,7 +1004,47 @@ async function renderProductsPage(db, pageIdx) {
       }
     }
 
+    // === CASE-ALT RETRY + LAST-RESORT CLIENT FILTER =========================
+    if (__prodPg.search.q && snap.empty && __prodPg.search.activeField === PROD_FIELDS.name) {
+      // 1) Try TitleCase first letter: "mar" -> "Mar"
+      const raw = (__prodPg.search.q || '').trim();
+      const alt = raw ? raw[0].toUpperCase() + raw.slice(1) : '';
+      if (alt) {
+        // rebuild query manually so we can inject a different prefix
+        let q2 = db.collection('exclusive_products').orderBy(PROD_FIELDS.name);
+        const f = __prodPg.filters;
+        if (f.vendorId)   q2 = q2.where(PROD_FIELDS.vendor, '==', f.vendorId);
+        if (f.categoryId) q2 = q2.where(PROD_FIELDS.category, '==', f.categoryId);
+        if (f.colorId)    q2 = q2.where(PROD_FIELDS.color, '==', f.colorId);
+        if (f.collectionId) q2 = q2.where(PROD_FIELDS.collectionArr, 'array-contains', f.collectionId);
+        if (anchor) q2 = q2.startAfter(anchor);
+        q2 = q2.startAt(alt).endAt(alt + '\uf8ff').limit(__prodPg.limit);
+        try { snap = await q2.get(); } catch (_) { /* ignore */ }
+      }
 
+      // 2) Last resort: fetch first page by name and client-filter startsWith (case-insensitive)
+      if (snap.empty) {
+        try {
+          let q3 = db.collection('exclusive_products').orderBy(PROD_FIELDS.name).limit(__prodPg.limit);
+          const f = __prodPg.filters;
+          if (f.vendorId)   q3 = q3.where(PROD_FIELDS.vendor, '==', f.vendorId);
+          if (f.categoryId) q3 = q3.where(PROD_FIELDS.category, '==', f.categoryId);
+          if (f.colorId)    q3 = q3.where(PROD_FIELDS.color, '==', f.colorId);
+          if (f.collectionId) q3 = q3.where(PROD_FIELDS.collectionArr, 'array-contains', f.collectionId);
+          if (anchor) q3 = q3.startAfter(anchor);
+
+          const tmp = await q3.get();
+          const needle = (__prodPg.search.q || '').trim().toLowerCase();
+          const filteredDocs = tmp.docs.filter(d =>
+            (d.data()?.formalName || '').toLowerCase().startsWith(needle)
+          );
+
+          // make a minimal snap-like object the rest of the function can consume
+          snap = { docs: filteredDocs, empty: filteredDocs.length === 0 };
+        } catch (_) { /* ignore */ }
+      }
+    }
+    // =======================================================================
 
     // client-side filters to apply (due to array-contains limit)
     const clientFilters = q.__clientFilters || { vendorId: '', categoryId: '', collectionId: '', colorId: '' };
@@ -1031,29 +1058,28 @@ async function renderProductsPage(db, pageIdx) {
     while (true) {
       const docs = currentSnap.docs;
       for (const d of docs) {
-        const data = { id: d.id, ...(d.data() || {}) };
+        const data = { id: d.id, ...(d.data ? (d.data() || {}) : d) }; // supports faux docs in last-resort
         if (matchesClientFilters(data, clientFilters)) {
           results.push({ doc: d, data });
           if (results.length >= __prodPg.limit) break;
         }
-        lastDoc = d; // advance anchor by Firestore order, not filtered order
+        lastDoc = d; // advance anchor by Firestore order
       }
 
       if (results.length >= __prodPg.limit) break;
 
       // If we didn't fill the page and there may be more, fetch the next chunk
-      if (docs.length === 0 || docs.length < __prodPg.limit) break; // no more data
+      if (!docs.length || docs.length < __prodPg.limit) break;
 
-      // next chunk
       const nextQ = buildProductsQuery(db, lastDoc);
       try {
         currentSnap = await nextQ.get();
       } catch {
-        break; // stop on error
+        break;
       }
 
       attempts++;
-      if (attempts > 10) break; // safety guard
+      if (attempts > 10) break; // guard
     }
 
     // Clear and paint rows
@@ -1062,7 +1088,7 @@ async function renderProductsPage(db, pageIdx) {
     results.forEach(({ doc, data }) => {
       const row = buildProductRow(data);
       if (row) {
-        row.setAttribute('data-id', doc.id);
+        row.setAttribute('data-id', doc.id || data.id);
         row.setAttribute('data-col', 'exclusive_products');
         frag.appendChild(row);
       }
@@ -1076,12 +1102,13 @@ async function renderProductsPage(db, pageIdx) {
       __prodPg.page = pageIdx;
     }
 
-    const hasNext = results.length >= __prodPg.limit; // optimistic; true if we filled the page
+    const hasNext = results.length >= __prodPg.limit;
     paintProductsPagerUI({ hasPrev: pageIdx > 1, hasNext });
   } finally {
     __prodPg.loading = false;
   }
 }
+
 
 
 function paintProductsPagerUI({ hasPrev, hasNext }) {
@@ -1139,9 +1166,13 @@ async function initProductsPager(db) {
 
 
 // Normalize search text to match your lowercased field
-function normalizeSearchText(s) {
-  return (s || '').toString().trim().toLowerCase();
+function normalizeSearchTextFor(field, s) {
+  const raw = (s || '').toString().trim();
+  // only lowercase when querying a lowercased mirror field
+  if (field === PROD_FIELDS.nameLower) return raw.toLowerCase();
+  return raw; // use raw case for 'formalName'
 }
+
 
 // Evaluate any remaining client-side filters for a given product doc
 function matchesClientFilters(data, clientFilters) {
@@ -1188,7 +1219,7 @@ Object.assign(__prodPg, {
   },
   search: {
     q: '',              // prefix text
-    fieldPref: ['formalNameLower', 'formalName'], // we’ll try in this order
+    fieldPref: ['formalName'], // we’ll try in this order
     activeField: null,  // chosen field for the active search
   },
 });
