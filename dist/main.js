@@ -904,8 +904,13 @@ const PROD_FIELDS = {
 
   vendor: 'vendor',           // scalar ID
   category: 'category',       // scalar ID
-  collection: 'collection',   // scalar ID
   color: 'color', 
+  
+  // collections is an ARRAY of IDs in your docs:
+  collectionArr: 'collections', // ← array field (e.g. ["col_1","col_2"])
+  // (keep this too if some legacy docs had a single scalar)
+  collection: 'collection',     // scalar fallback (optional)
+
 };
 
 
@@ -941,8 +946,18 @@ function buildProductsQuery(db, startAfterDoc = null) {
   const f = __prodPg.filters;
   if (f.vendorId)     q = q.where(PROD_FIELDS.vendor, '==', f.vendorId);
   if (f.categoryId)   q = q.where(PROD_FIELDS.category, '==', f.categoryId);
-  if (f.collectionId) q = q.where(PROD_FIELDS.collection, '==', f.collectionId);
   if (f.colorId)      q = q.where(PROD_FIELDS.color, '==', f.colorId);
+
+  // COLLECTION filter (ARRAY field)
+  if (f.collectionId) {
+    // primary: array-contains on the array field
+    q = q.where(PROD_FIELDS.collectionArr, 'array-contains', f.collectionId);
+
+    // OPTIONAL fallback if you still have some scalar-only docs:
+    // q = q.where(PROD_FIELDS.collection, '==', f.collectionId);
+    // ^ You can't OR these in a single query—if you truly have mixed schema,
+    //   backfill a 'collections' array on all docs (recommended).
+  }
 
   // === Search prefix ===
   if (hasSearch) {
