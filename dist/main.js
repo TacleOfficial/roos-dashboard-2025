@@ -1008,7 +1008,7 @@ async function renderProductsPage(db, pageIdx) {
 
 
     // client-side filters to apply (due to array-contains limit)
-    const clientFilters = q.__clientFilters || { vendorId: '', categoryId: '', collectionId: '', colorId: '' };
+    const clientFilters = q.__clientFilters || { vendor: '', category: '', collection: '', color: '' };
     const results = [];
     let lastDoc = anchor || null;
 
@@ -1134,27 +1134,27 @@ function normalizeSearchText(s) {
 // Evaluate any remaining client-side filters for a given product doc
 function matchesClientFilters(data, clientFilters) {
   // For each possible filter, check presence on either scalar or array fields
-  const { vendorId, categoryId, collectionId, colorId } = clientFilters;
+  const { vendorId, category, collection, color } = clientFilters;
 
-  if (vendorId) {
+  if (vendor) {
     const v = data.vendorId ?? data.vendor ?? null;
     if (Array.isArray(v)) { if (!v.includes(vendorId)) return false; }
     else if (v !== vendorId) return false;
   }
 
-  if (categoryId) {
+  if (category) {
     const c = data.categoryIds ?? data.categoryId ?? data.category ?? data.categories ?? null;
     if (Array.isArray(c)) { if (!c.includes(categoryId)) return false; }
     else if (c !== categoryId) return false;
   }
 
-  if (collectionId) {
+  if (collection) {
     const c = data.collectionIds ?? data.collectionId ?? data.collection ?? data.collections ?? data.collectionName ?? null;
     if (Array.isArray(c)) { if (!c.includes(collectionId)) return false; }
     else if (c !== collectionId) return false;
   }
 
-  if (colorId) {
+  if (color) {
     const c = data.colorIds ?? data.colorId ?? data.color ?? data.colour ?? null;
     if (Array.isArray(c)) { if (!c.includes(colorId)) return false; }
     else if (c !== colorId) return false;
@@ -1169,10 +1169,10 @@ function matchesClientFilters(data, clientFilters) {
 // extend existing __prodPg
 Object.assign(__prodPg, {
   filters: {
-    vendorId: '',       // scalar IDs (or array fields handled in query builder)
-    categoryId: '',
-    collectionId: '',
-    colorId: '',
+    vendor: '',       // scalar IDs (or array fields handled in query builder)
+    category: '',
+    collection: '',
+    color: '',
   },
   search: {
     q: '',              // prefix text
