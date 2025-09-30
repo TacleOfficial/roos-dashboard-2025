@@ -490,6 +490,7 @@
       initProfileUI(window.portalCtx);
       initUserHeaderUI(window.portalCtx);   // ← add this      
       await preloadLookups(db);          // ← hydrate ID→Name maps first
+      wireProductsFiltersOnce();     // build filter selects & search handlers
       await loadJobsForUser(db, user.uid); // visible to all users now
       await loadSamplesForUser(db, user.uid);   // ← add this line
       //await loadProducts(db);               // ← render products table
@@ -906,15 +907,56 @@ const __prodPg = {
 
 // Build a query with the current mode and optional startAfter doc
 function buildProductsQuery(db, startAfterDoc = null) {
-  let q;
-  if (__prodPg.mode === 'updated') {
-    q = db.collection('exclusive_products').orderBy('updatedAt', 'desc').limit(__prodPg.limit);
+  const col = db.collection('exclusive_products');
+
+  // If searching, we must orderBy the searched field.
+  const hasSearch = !!(__prodPg.search.q);
+  let q, orderField = null;
+
+  if (hasSearch) {
+    // choose a field to search (try preferred list once; cache result)
+    if (!__prodPg.search.activeField) {
+      __prodPg.search.activeField = __prodPg.search.fieldPref[0]; // will try fallback on catch in render
+    }
+    orderField = __prodPg.search.activeField;
+    q = col.orderBy(orderField).limit(__prodPg.limit);
   } else {
-    q = db.collection('exclusive_products').orderBy('formalName').limit(__prodPg.limit);
+    if (__prodPg.mode === 'updated') q = col.orderBy('updatedAt', 'desc').limit(__prodPg.limit);
+    else { orderField = 'formalName'; q = col.orderBy('formalName').limit(__prodPg.limit); }
   }
+
+  // Apply filters (tune field names/operators to your schema)
+  // Vendor assumed scalar: vendorId (or vendor)
+  if (__prodPg.filters.vendorId) {
+    // prefer ID field; fallback to vendor if that’s what you store
+    q = q.where('vendorId', '==', __prodPg.filters.vendorId);
+  }
+
+  // Category/Collection/Color can be either scalar or array in your docs.
+  // Below assumes arrays: categoryId(s), collectionId(s), colorId(s).
+  if (__prodPg.filters.categoryId) {
+    // try array-contains on categoryIds; if you store scalar, change to '=='
+    q = q.where('categoryIds', 'array-contains', __prodPg.filters.categoryId);
+  }
+  if (__prodPg.filters.collectionId) {
+    q = q.where('collectionIds', 'array-contains', __prodPg.filters.collectionId);
+  }
+  if (__prodPg.filters.colorId) {
+    // many catalogs store a single colorId; if yours is array, keep array-contains
+    q = q.where('colorId', '==', __prodPg.filters.colorId);
+    // or: q = q.where('colorIds','array-contains', __prodPg.filters.colorId);
+  }
+
+  // Search prefix: startAt/endAt(q, q+\uf8ff)
+  if (hasSearch) {
+    const qtext = __prodPg.search.q;
+    q = q.startAt(qtext).endAt(qtext + '\uf8ff');
+  }
+
   if (startAfterDoc) q = q.startAfter(startAfterDoc);
   return q;
 }
+
 
 // Render one page. If pageIdx === 1 → no startAfter; else use anchors[pageIdx-2]
 async function renderProductsPage(db, pageIdx) {
@@ -929,18 +971,33 @@ async function renderProductsPage(db, pageIdx) {
     const anchor = pageIdx > 1 ? __prodPg.anchors[pageIdx - 2] : null;
 
     // attempt primary mode; on failure, fallback once to name
-    let snap;
-    try {
+  let snap;
+try {
+  snap = await buildProductsQuery(db, anchor).get();
+} catch (err) {
+  // Fallbacks:
+  if (__prodPg.search.q) {
+    // try swapping search field to next preferred option once
+    const idx = __prodPg.search.fieldPref.indexOf(__prodPg.search.activeField || '');
+    const next = __prodPg.search.fieldPref[idx + 1];
+    if (next) {
+      console.warn('[products] retrying search with', next, err);
+      __prodPg.search.activeField = next;
       snap = await buildProductsQuery(db, anchor).get();
-    } catch (err) {
-      if (__prodPg.mode === 'updated') {
-        console.warn('[products] falling back to formalName order', err);
-        __prodPg.mode = 'name';
-        snap = await buildProductsQuery(db, anchor).get();
-      } else {
-        throw err;
-      }
+    } else {
+      console.warn('[products] search failed; removing search and retrying', err);
+      __prodPg.search.q = '';
+      __prodPg.mode = 'updated';
+      snap = await buildProductsQuery(db, anchor).get();
     }
+  } else if (__prodPg.mode === 'updated') {
+    console.warn('[products] falling back to formalName order', err);
+    __prodPg.mode = 'name';
+    snap = await buildProductsQuery(db, anchor).get();
+  } else {
+    throw err;
+  }
+}
 
     // clear current rows
     qsa('#products-tbody > tr:not([data-row="template"])').forEach(tr => tr.remove());
@@ -989,8 +1046,15 @@ function paintProductsPagerUI({ hasPrev, hasNext }) {
   if (btnPrev) btnPrev.disabled = !hasPrev;
   if (btnNext) btnNext.disabled = !hasNext;
 
-  if (info) info.textContent = `Page ${__prodPg.page}${__prodPg.mode === 'name' ? ' · A→Z' : ''}`;
+  const parts = [`Page ${__prodPg.page}`];
+  if (__prodPg.search.q) parts.push(`“${__prodPg.search.q}”`);
+  if (__prodPg.mode === 'name' && !__prodPg.search.q) parts.push('A→Z');
+  const activeFilters = Object.values(__prodPg.filters).filter(Boolean).length;
+  if (activeFilters) parts.push(`${activeFilters} filter${activeFilters>1?'s':''}`);
+
+  if (info) info.textContent = parts.join(' · ');
 }
+
 
 // one-time wiring for prev/next buttons
 function wireProductsPagerOnce(db) {
@@ -1024,6 +1088,105 @@ async function initProductsPager(db) {
   await renderProductsPage(db, 1);
 }
 // ---------- /PRODUCTS PAGINATION ----------
+
+
+
+
+// extend existing __prodPg
+Object.assign(__prodPg, {
+  filters: {
+    vendorId: '',       // scalar IDs (or array fields handled in query builder)
+    categoryId: '',
+    collectionId: '',
+    colorId: '',
+  },
+  search: {
+    q: '',              // prefix text
+    fieldPref: ['formalNameLower', 'formalName'], // we’ll try in this order
+    activeField: null,  // chosen field for the active search
+  },
+});
+
+function fillSelectFromMap(selectEl, map, { includeAll = true } = {}) {
+  if (!selectEl) return;
+  // wipe options
+  while (selectEl.options.length) selectEl.remove(0);
+  if (includeAll) {
+    const opt = document.createElement('option');
+    opt.value = ''; opt.textContent = 'All';
+    selectEl.appendChild(opt);
+  }
+  // sort names A→Z
+  const items = Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  items.sort((a,b) => a.name.localeCompare(b.name));
+  items.forEach(({ id, name }) => {
+    const opt = document.createElement('option');
+    opt.value = id; opt.textContent = name || id;
+    selectEl.appendChild(opt);
+  });
+}
+
+function wireProductsFiltersOnce() {
+  const root = document.getElementById('products-controls');
+  if (!root || root.dataset.pfInit === '1') return;
+  root.dataset.pfInit = '1';
+
+  const selVendor = root.querySelector('[data-flt="vendorId"]');
+  const selCat = root.querySelector('[data-flt="categoryId"]');
+  const selColl = root.querySelector('[data-flt="collectionId"]');
+  const selColor = root.querySelector('[data-flt="colorId"]');
+
+  // Fill from preloaded maps
+  if (typeof __lookups !== 'undefined') {
+    fillSelectFromMap(selVendor, __lookups.vendors);
+    fillSelectFromMap(selCat, __lookups.categories);
+    fillSelectFromMap(selColl, __lookups.collections);
+    fillSelectFromMap(selColor, __lookups.colors);
+  }
+
+  // Limit selector
+  const selLimit = root.querySelector('[data-pg="limit"]');
+  if (selLimit) {
+    selLimit.value = String(__prodPg.limit);
+    selLimit.addEventListener('change', async () => {
+      __prodPg.limit = Math.max(1, Number(selLimit.value) || 50);
+      await resetAndRenderProducts();
+    });
+  }
+
+  // Filters
+  const onChangeFilter = async (e) => {
+    const el = e.target;
+    const key = el.getAttribute('data-flt');
+    if (!key) return;
+    __prodPg.filters[key] = el.value || '';
+    await resetAndRenderProducts();
+  };
+  [selVendor, selCat, selColl, selColor].forEach(el => el && el.addEventListener('change', onChangeFilter));
+
+  // Search (debounced)
+  const inpQ = root.querySelector('[data-flt="q"]');
+  if (inpQ) {
+    let t = null;
+    const fire = async () => {
+      __prodPg.search.q = (inpQ.value || '').trim();
+      await resetAndRenderProducts();
+    };
+    inpQ.addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(fire, 300);
+    });
+  }
+}
+
+async function resetAndRenderProducts() {
+  __prodPg.page = 1;
+  __prodPg.anchors = [null];
+  __prodPg.mode = __prodPg.search.q ? 'name' : 'updated'; // search forces name ordering
+  __prodPg.search.activeField = null; // re-select on first query attempt
+  await renderProductsPage(window.portalCtx.db, 1);
+}
+
 
 
 
