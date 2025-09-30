@@ -54,6 +54,54 @@
     return new Date(val);
   }
 
+
+    // ---------- LOOKUP CACHES (ID -> Name) ----------
+  const __lookups = {
+    vendors: new Map(),
+    categories: new Map(),
+    collections: new Map(),
+    colors: new Map(),
+  };
+
+  async function preloadLookups(db) {
+    // helper to fill one map from a collection with "Item ID" and "Name"
+    async function hydrate(map, colName) {
+      map.clear();
+      const snap = await db.collection(colName).get();
+      snap.forEach(doc => {
+        const d = doc.data() || {};
+        const id = String(d['Item ID'] ?? d.itemId ?? d.id ?? doc.id).trim();
+        const name = String(d['Name'] ?? d.name ?? '').trim();
+        if (id) map.set(id, name || id);
+      });
+    }
+
+    await Promise.all([
+      hydrate(__lookups.vendors, 'exclusive_vendors'),
+      hydrate(__lookups.categories, 'categories'),
+      hydrate(__lookups.collections, 'collections_from_vendors'),
+      hydrate(__lookups.colors, 'colors'),
+    ]);
+  }
+
+  function mapIdToName(map, v) {
+    if (v == null || v === '') return '';
+    const id = String(v).trim();
+    return __lookups[map]?.get(id) || id;
+  }
+
+  function mapIdsToNames(map, v) {
+    if (Array.isArray(v)) {
+      const arr = v.map(x => mapIdToName(map, x)).filter(Boolean);
+      return arr.join(', ');
+    }
+    return mapIdToName(map, v);
+  }
+  // ---------- /LOOKUP CACHES ----------
+
+
+
+
   const fmt = {
     money(v) {
       const n = typeof v === 'number' ? v : Number(v);
@@ -441,6 +489,7 @@
       initChangePasswordUI(window.portalCtx);
       initProfileUI(window.portalCtx);
       initUserHeaderUI(window.portalCtx);   // ← add this      
+      await preloadLookups(db);          // ← hydrate ID→Name maps first
       await loadJobsForUser(db, user.uid); // visible to all users now
       await loadSamplesForUser(db, user.uid);   // ← add this line
       await loadProducts(db);               // ← render products table
@@ -757,11 +806,30 @@
       // accept common alternative keys (be forgiving with your schema)
       if (val == null) {
         if (prop === 'formalName') val = prod.formalName ?? prod.name ?? prod.title ?? '';
-        else if (prop === 'vendor') val = prod.vendor ?? prod.vendorName ?? prod.brand ?? '';
-        else if (prop === 'category') val = prod.category ?? prod.categories ?? '';
-        else if (prop === 'collection') val = prod.collection ?? prod.collections ?? prod.collectionName ?? '';
+        else if (prop === 'vendor') {
+          // supports vendorId/vendor/vendorID, converts ID(s) -> Name(s)
+          const raw = prod.vendorId ?? prod.vendorID ?? prod.vendor ?? prod.vendorName ?? prod.brand ?? '';
+          val = Array.isArray(raw) ? mapIdsToNames('vendors', raw) : mapIdToName('vendors', raw);
+        }
+        else if (prop === 'category') {
+          const raw = prod.categoryId ?? prod.categoryID ?? prod.category ?? prod.categories ?? '';
+          val = Array.isArray(raw) ? mapIdsToNames('categories', raw) : mapIdToName('categories', raw);
+        }
+        else if (prop === 'collection') {
+          const raw = prod.collectionId ?? prod.collectionID ?? prod.collection ?? prod.collections ?? prod.collectionName ?? '';
+          val = Array.isArray(raw) ? mapIdsToNames('collections', raw) : mapIdToName('collections', raw);
+        }
         else if (prop === 'description') val = prod.description ?? prod.desc ?? '';
-        else if (prop === 'color') val = prod.color ?? prod.colour ?? '';
+        else if (prop === 'color') {
+          const raw = prod.colorId ?? prod.colorID ?? prod.color ?? prod.colour ?? '';
+          val = Array.isArray(raw) ? mapIdsToNames('colors', raw) : mapIdToName('colors', raw);
+        }
+      } else {
+        // If doc already stored names, still try to resolve if they're IDs
+        if (prop === 'vendor')     val = Array.isArray(val) ? mapIdsToNames('vendors', val)     : mapIdToName('vendors', val);
+        if (prop === 'category')   val = Array.isArray(val) ? mapIdsToNames('categories', val)  : mapIdToName('categories', val);
+        if (prop === 'collection') val = Array.isArray(val) ? mapIdsToNames('collections', val) : mapIdToName('collections', val);
+        if (prop === 'color')      val = Array.isArray(val) ? mapIdsToNames('colors', val)      : mapIdToName('colors', val);
       }
 
       // normalize arrays to CSV
@@ -870,14 +938,23 @@
     // text nodes
     qsa('[data-pd]', modal).forEach(el => {
       const key = el.getAttribute('data-pd');
-      const raw = prod[key] ?? (
-        // be forgiving for common aliases
-        key === 'formalName' ? (prod.formalName ?? prod.name ?? prod.title) :
-        key === 'vendor'     ? (prod.vendor ?? prod.vendorName ?? prod.brand) :
-        key === 'collection' ? (prod.collection ?? prod.collections ?? prod.collectionName) :
-        key === 'description'? (prod.description ?? prod.desc) :
-        prod[key]
-      );
+      // Read raw value with aliases
+      let raw = prod[key];
+      if (raw == null) {
+        if (key === 'formalName') raw = (prod.formalName ?? prod.name ?? prod.title);
+        else if (key === 'vendor') raw = (prod.vendorId ?? prod.vendorID ?? prod.vendor ?? prod.vendorName ?? prod.brand);
+        else if (key === 'category') raw = (prod.categoryId ?? prod.categoryID ?? prod.category ?? prod.categories);
+        else if (key === 'collection') raw = (prod.collectionId ?? prod.collectionID ?? prod.collection ?? prod.collections ?? prod.collectionName);
+        else if (key === 'description') raw = (prod.description ?? prod.desc);
+        else if (key === 'color') raw = (prod.colorId ?? prod.colorID ?? prod.color ?? prod.colour);
+      }
+
+      // Map IDs to Names for specific keys
+      if (key === 'vendor')     raw = Array.isArray(raw) ? mapIdsToNames('vendors', raw)     : mapIdToName('vendors', raw);
+      if (key === 'category')   raw = Array.isArray(raw) ? mapIdsToNames('categories', raw)  : mapIdToName('categories', raw);
+      if (key === 'collection') raw = Array.isArray(raw) ? mapIdsToNames('collections', raw) : mapIdToName('collections', raw);
+      if (key === 'color')      raw = Array.isArray(raw) ? mapIdsToNames('colors', raw)      : mapIdToName('colors', raw);
+
       const val = toDisplayValue(key, raw);
       if (isEmptyValue(val)) {
         el.textContent = fallbackFor(el);
