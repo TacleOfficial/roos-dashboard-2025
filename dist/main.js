@@ -897,6 +897,18 @@
 
 
   // ---------- PRODUCTS PAGINATION ----------
+const PROD_FIELDS = {
+  nameLower: 'formalNameLower', // lowercased mirror of name (recommended)
+  name: 'formalName',
+  updatedAt: 'updatedAt',
+
+  vendorId: 'vendorId',
+  categoryId: 'categoryId',
+  collectionId: 'collectionId',
+  colorId: 'colorId',
+};
+
+
 const __prodPg = {
   limit: 50,          // tune as you like (<= 200 is fine)
   mode: 'updated',    // 'updated' -> orderBy('updatedAt','desc'); fallback: 'name'
@@ -909,53 +921,48 @@ const __prodPg = {
 function buildProductsQuery(db, startAfterDoc = null) {
   const col = db.collection('exclusive_products');
 
-  // If searching, we must orderBy the searched field.
-  const hasSearch = !!(__prodPg.search.q);
-  let q, orderField = null;
+  const hasSearch = !!__prodPg.search.q;
+  const qtext = normalizeSearchText(__prodPg.search.q);
 
+  // pick order field
+  if (hasSearch && !__prodPg.search.activeField) {
+    // try lowercased field first, then fallback to original name
+    __prodPg.search.activeField = (PROD_FIELDS.nameLower || 'formalNameLower');
+  }
+
+  const orderField = hasSearch
+    ? __prodPg.search.activeField
+    : (__prodPg.mode === 'updated' ? PROD_FIELDS.updatedAt : PROD_FIELDS.name);
+
+  // base query + order
+  let q = col.orderBy(
+    orderField,
+    hasSearch ? undefined : (__prodPg.mode === 'updated' ? 'desc' : undefined)
+  );
+
+  // === SCALAR filters (all with '==') ===
+  const f = __prodPg.filters;
+  if (f.vendorId)     q = q.where(PROD_FIELDS.vendorId, '==', f.vendorId);
+  if (f.categoryId)   q = q.where(PROD_FIELDS.categoryId, '==', f.categoryId);
+  if (f.collectionId) q = q.where(PROD_FIELDS.collectionId, '==', f.collectionId);
+  if (f.colorId)      q = q.where(PROD_FIELDS.colorId, '==', f.colorId);
+
+  // === Search prefix ===
   if (hasSearch) {
-    // choose a field to search (try preferred list once; cache result)
-    if (!__prodPg.search.activeField) {
-      __prodPg.search.activeField = __prodPg.search.fieldPref[0]; // will try fallback on catch in render
-    }
-    orderField = __prodPg.search.activeField;
-    q = col.orderBy(orderField).limit(__prodPg.limit);
-  } else {
-    if (__prodPg.mode === 'updated') q = col.orderBy('updatedAt', 'desc').limit(__prodPg.limit);
-    else { orderField = 'formalName'; q = col.orderBy('formalName').limit(__prodPg.limit); }
-  }
-
-  // Apply filters (tune field names/operators to your schema)
-  // Vendor assumed scalar: vendorId (or vendor)
-  if (__prodPg.filters.vendorId) {
-    // prefer ID field; fallback to vendor if that’s what you store
-    q = q.where('vendorId', '==', __prodPg.filters.vendorId);
-  }
-
-  // Category/Collection/Color can be either scalar or array in your docs.
-  // Below assumes arrays: categoryId(s), collectionId(s), colorId(s).
-  if (__prodPg.filters.categoryId) {
-    // try array-contains on categoryIds; if you store scalar, change to '=='
-    q = q.where('categoryIds', 'array-contains', __prodPg.filters.categoryId);
-  }
-  if (__prodPg.filters.collectionId) {
-    q = q.where('collectionIds', 'array-contains', __prodPg.filters.collectionId);
-  }
-  if (__prodPg.filters.colorId) {
-    // many catalogs store a single colorId; if yours is array, keep array-contains
-    q = q.where('colorId', '==', __prodPg.filters.colorId);
-    // or: q = q.where('colorIds','array-contains', __prodPg.filters.colorId);
-  }
-
-  // Search prefix: startAt/endAt(q, q+\uf8ff)
-  if (hasSearch) {
-    const qtext = __prodPg.search.q;
     q = q.startAt(qtext).endAt(qtext + '\uf8ff');
   }
 
   if (startAfterDoc) q = q.startAfter(startAfterDoc);
+  q = q.limit(__prodPg.limit);
+
+  // annotate for render (optional)
+  q.__hasSearch = hasSearch;
+  q.__qtext = qtext;
+  q.__orderField = orderField;
+
   return q;
 }
+
 
 
 // Render one page. If pageIdx === 1 → no startAfter; else use anchors[pageIdx-2]
@@ -967,74 +974,103 @@ async function renderProductsPage(db, pageIdx) {
     const tplRow = tbody ? qs('[data-row="template"]', tbody) : null;
     if (!tbody || !tplRow) { console.warn('[products] missing tbody/template'); return; }
 
-    // pick anchor
     const anchor = pageIdx > 1 ? __prodPg.anchors[pageIdx - 2] : null;
 
-    // attempt primary mode; on failure, fallback once to name
-  let snap;
-try {
-  snap = await buildProductsQuery(db, anchor).get();
-} catch (err) {
-  // Fallbacks:
-  if (__prodPg.search.q) {
-    // try swapping search field to next preferred option once
-    const idx = __prodPg.search.fieldPref.indexOf(__prodPg.search.activeField || '');
-    const next = __prodPg.search.fieldPref[idx + 1];
-    if (next) {
-      console.warn('[products] retrying search with', next, err);
-      __prodPg.search.activeField = next;
+    // Build initial query
+    let q = buildProductsQuery(db, anchor);
+
+    let snap;
+    try {
       snap = await buildProductsQuery(db, anchor).get();
-    } else {
-      console.warn('[products] search failed; removing search and retrying', err);
-      __prodPg.search.q = '';
-      __prodPg.mode = 'updated';
-      snap = await buildProductsQuery(db, anchor).get();
+    } catch (err) {
+      if (__prodPg.search.q) {
+        // try fallback to the non-lower field once
+        const fallbackField = PROD_FIELDS.name;
+        if (__prodPg.search.activeField !== fallbackField) {
+          console.warn('[products] retrying search with', fallbackField, err);
+          __prodPg.search.activeField = fallbackField;
+          snap = await buildProductsQuery(db, anchor).get();
+        } else {
+          console.warn('[products] search failed; removing search and retrying', err);
+          __prodPg.search.q = '';
+          __prodPg.search.activeField = null;
+          __prodPg.mode = 'updated';
+          snap = await buildProductsQuery(db, anchor).get();
+        }
+      } else if (__prodPg.mode === 'updated') {
+        console.warn('[products] falling back to name order', err);
+        __prodPg.mode = 'name';
+        snap = await buildProductsQuery(db, anchor).get();
+      } else {
+        throw err;
+      }
     }
-  } else if (__prodPg.mode === 'updated') {
-    console.warn('[products] falling back to formalName order', err);
-    __prodPg.mode = 'name';
-    snap = await buildProductsQuery(db, anchor).get();
-  } else {
-    throw err;
-  }
-}
 
-    // clear current rows
+
+    // client-side filters to apply (due to array-contains limit)
+    const clientFilters = q.__clientFilters || { vendorId: '', categoryId: '', collectionId: '', colorId: '' };
+    const results = [];
+    let lastDoc = anchor || null;
+
+    // We may need to fetch multiple chunks to fill the page after client filtering
+    let attempts = 0;
+    let currentSnap = snap;
+
+    while (true) {
+      const docs = currentSnap.docs;
+      for (const d of docs) {
+        const data = { id: d.id, ...(d.data() || {}) };
+        if (matchesClientFilters(data, clientFilters)) {
+          results.push({ doc: d, data });
+          if (results.length >= __prodPg.limit) break;
+        }
+        lastDoc = d; // advance anchor by Firestore order, not filtered order
+      }
+
+      if (results.length >= __prodPg.limit) break;
+
+      // If we didn't fill the page and there may be more, fetch the next chunk
+      if (docs.length === 0 || docs.length < __prodPg.limit) break; // no more data
+
+      // next chunk
+      const nextQ = buildProductsQuery(db, lastDoc);
+      try {
+        currentSnap = await nextQ.get();
+      } catch {
+        break; // stop on error
+      }
+
+      attempts++;
+      if (attempts > 10) break; // safety guard
+    }
+
+    // Clear and paint rows
     qsa('#products-tbody > tr:not([data-row="template"])').forEach(tr => tr.remove());
-
-    // paint rows
     const frag = document.createDocumentFragment();
-    let lastDoc = null;
-    snap.docs.forEach(doc => {
-      const data = { id: doc.id, ...(doc.data() || {}) };
+    results.forEach(({ doc, data }) => {
       const row = buildProductRow(data);
       if (row) {
         row.setAttribute('data-id', doc.id);
         row.setAttribute('data-col', 'exclusive_products');
         frag.appendChild(row);
       }
-      lastDoc = doc; // the last visible doc becomes the next page's anchor
     });
     tbody.appendChild(frag);
 
-    // update anchors + page index
-    // Ensure anchors has length >= pageIdx-1
-    while (__prodPg.anchors.length < pageIdx - 1) __prodPg.anchors.push(null);
-
-    // if we actually got results, set the anchor for this page
-    if (snap.size > 0) {
-      __prodPg.anchors[pageIdx - 1] = lastDoc || null; // lastDoc for page n
+    // Update anchors
+    if (lastDoc) {
+      while (__prodPg.anchors.length < pageIdx - 1) __prodPg.anchors.push(null);
+      __prodPg.anchors[pageIdx - 1] = lastDoc;
       __prodPg.page = pageIdx;
-    } else {
-      // if requesting a page with no results, stay at current page
-      // (or bump down if we tried to go beyond end)
     }
 
-    paintProductsPagerUI({ hasPrev: pageIdx > 1, hasNext: snap.size === __prodPg.limit });
+    const hasNext = results.length >= __prodPg.limit; // optimistic; true if we filled the page
+    paintProductsPagerUI({ hasPrev: pageIdx > 1, hasNext });
   } finally {
     __prodPg.loading = false;
   }
 }
+
 
 function paintProductsPagerUI({ hasPrev, hasNext }) {
   const wrap = qs('#products-pager[data-pg]');
@@ -1088,6 +1124,44 @@ async function initProductsPager(db) {
   await renderProductsPage(db, 1);
 }
 // ---------- /PRODUCTS PAGINATION ----------
+
+
+// Normalize search text to match your lowercased field
+function normalizeSearchText(s) {
+  return (s || '').toString().trim().toLowerCase();
+}
+
+// Evaluate any remaining client-side filters for a given product doc
+function matchesClientFilters(data, clientFilters) {
+  // For each possible filter, check presence on either scalar or array fields
+  const { vendorId, categoryId, collectionId, colorId } = clientFilters;
+
+  if (vendorId) {
+    const v = data.vendorId ?? data.vendor ?? null;
+    if (Array.isArray(v)) { if (!v.includes(vendorId)) return false; }
+    else if (v !== vendorId) return false;
+  }
+
+  if (categoryId) {
+    const c = data.categoryIds ?? data.categoryId ?? data.category ?? data.categories ?? null;
+    if (Array.isArray(c)) { if (!c.includes(categoryId)) return false; }
+    else if (c !== categoryId) return false;
+  }
+
+  if (collectionId) {
+    const c = data.collectionIds ?? data.collectionId ?? data.collection ?? data.collections ?? data.collectionName ?? null;
+    if (Array.isArray(c)) { if (!c.includes(collectionId)) return false; }
+    else if (c !== collectionId) return false;
+  }
+
+  if (colorId) {
+    const c = data.colorIds ?? data.colorId ?? data.color ?? data.colour ?? null;
+    if (Array.isArray(c)) { if (!c.includes(colorId)) return false; }
+    else if (c !== colorId) return false;
+  }
+
+  return true;
+}
 
 
 
@@ -1169,7 +1243,7 @@ function wireProductsFiltersOnce() {
   if (inpQ) {
     let t = null;
     const fire = async () => {
-      __prodPg.search.q = (inpQ.value || '').trim();
+      __prodPg.search.q = inpQ.value || '';  // raw; normalized in buildProductsQuery
       await resetAndRenderProducts();
     };
     inpQ.addEventListener('input', () => {
