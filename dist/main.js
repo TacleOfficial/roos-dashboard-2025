@@ -1395,141 +1395,201 @@
     });
   }
 
-  // ---- main loader triggered on row click ----
-  async function loadAndShowSampleModal({ db, uid, sampleId }) {
-    const modal = md$('[data-modal="sample"]');
-    if (!modal) return;
 
-    const elTitle = md$('[data-md="title"]', modal);
-    const elImg = md$('[data-md="image"]', modal);
-    const elDate = md$('[data-md="date"]', modal);
-    const elVend = md$('[data-md="vendor"]', modal);
-    const elColl = md$('[data-md="collection"]', modal);
-    const elSpeci = md$('[data-md="specifier"]', modal);
-    const elJob = md$('[data-md="jobName"]', modal);
-    const elSpecs = md$('[data-md="specs"]', modal);
-    const elRes = md$('[data-md="resources"]', modal);
+ // ---- main loader triggered on row click ----
+async function loadAndShowSampleModal({ db, uid, sampleId }) {
+  const modal = md$('[data-modal="sample"]');
+  if (!modal) return;
 
-    const listContainer = modal.querySelector('#notes-list-container');
-    const elInput = md$('[data-md="note-input"]', modal);
-    const elBtn = md$('[data-md="note-submit"]', modal);
-    const elStat = md$('[data-md="note-status"]', modal);
+  const elTitle = md$('[data-md="title"]', modal);
+  const elImg = md$('[data-md="image"]', modal);
+  const elDate = md$('[data-md="date"]', modal);
+  const elVend = md$('[data-md="vendor"]', modal);
+  const elColl = md$('[data-md="collection"]', modal);
+  const elSpeci = md$('[data-md="specifier"]', modal);
+  const elJob = md$('[data-md="jobName"]', modal);
+  const elSpecs = md$('[data-md="specs"]', modal);
+  const elRes = md$('[data-md="resources"]', modal);
 
-    // Reset UI
-    mdSetText(elTitle, '—'); mdSetSrc(elImg, ''); mdSetText(elDate, '—');
-    mdSetText(elVend, '—'); mdSetText(elColl, '—'); mdSetText(elSpeci, '—'); mdSetText(elJob, '—');
-    mdSetRichText(elSpecs, ''); mdSetRichText(elRes, '');
-    if (elInput) elInput.value = '';
-    if (elBtn) elBtn.disabled = true;
-    if (elStat) elStat.textContent = '';
+  // Optional (only painted if present in your HTML)
+  const elCat = md$('[data-md="category"]', modal);
+  const elColor = md$('[data-md="color"]', modal);
 
-    // Fetch sample
-    const sref = db.collection('users').doc(uid).collection('sampleRequests').doc(sampleId);
-    const ss = await sref.get();
-    if (!ss.exists) {
-      mdSetText(elTitle, 'Sample not found');
-      openSampleModal();
-      return;
-    }
-    const sample = ss.data() || {};
+  const listContainer = modal.querySelector('#notes-list-container');
+  const elInput = md$('[data-md="note-input"]', modal);
+  const elBtn = md$('[data-md="note-submit"]', modal);
+  const elStat = md$('[data-md="note-status"]', modal);
 
-    // Paint basics
-    mdSetText(elTitle, sample.material ?? 'Sample');
-    const d = sample.createdAt?.toDate ? sample.createdAt.toDate()
-      : (sample.date ? new Date(sample.date) : null);
-    mdSetText(elDate, (d && !isNaN(d)) ? d.toLocaleDateString() : '—');
-    mdSetText(elSpeci, sample.specifier ?? '—');
-    mdSetText(elJob, sample.jobName ?? '—');
+  // Small helper to translate IDs -> Names via preloaded maps
+  // mapName ∈ {'vendors','collections','categories','colors'}
+  const mapId = (mapName, raw) => {
+    const getName = (id) => {
+      const s = (id == null ? '' : String(id).trim());
+      if (!s) return '';
+      const m = (typeof __lookups !== 'undefined') ? __lookups[mapName] : null;
+      return (m && m.get(s)) || s;
+    };
+    return Array.isArray(raw)
+      ? raw.map(getName).filter(Boolean).join(', ')
+      : getName(raw);
+  };
 
-    // Load product extras (vendor, collection[], image, rich text fields)
-    try {
-      const prod = await fetchProductForSample(db, sample);
-      if (prod) {
-        // Vendor
-        const vendor = prod.vendor ?? prod.vendorName ?? prod.supplier ?? prod.brand ?? '—';
-        mdSetText(elVend, vendor);
+  // Reset UI
+  mdSetText(elTitle, '—'); mdSetSrc(elImg, ''); mdSetText(elDate, '—');
+  mdSetText(elVend, '—'); mdSetText(elColl, '—'); mdSetText(elSpeci, '—'); mdSetText(elJob, '—');
+  if (elCat)   mdSetText(elCat, '—');
+  if (elColor) mdSetText(elColor, '—');
+  mdSetRichText(elSpecs, ''); mdSetRichText(elRes, '');
+  if (elInput) elInput.value = '';
+  if (elBtn) elBtn.disabled = true;
+  if (elStat) elStat.textContent = '';
 
-        // Collection (array or string; handle alternative keys)
-        const col =
-          Array.isArray(prod.collection) ? prod.collection :
-            Array.isArray(prod.collections) ? prod.collections :
-              (prod.collectionName ? [prod.collectionName] : (prod.collection || prod.collections || []));
-        const colText = Array.isArray(col) ? col.filter(Boolean).join(', ') : (col || '—');
-        mdSetText(elColl, colText || '—');
-
-        // Image (several common shapes)
-        const imageUrl =
-          prod.image ||
-          (Array.isArray(prod.images) && (typeof prod.images[0] === 'string' ? prod.images[0] : (prod.images[0]?.url))) ||
-          prod.media?.hero ||
-          prod.heroImage ||
-          '';
-        if (imageUrl) mdSetSrc(elImg, imageUrl);
-        if (elImg) {
-          elImg.onerror = () => { elImg.onerror = null; mdSetSrc(elImg, ''); };
-          elImg.setAttribute('alt', (sample.material || 'Product image') + (vendor && vendor !== '—' ? ` – ${vendor}` : ''));
-        }
-
-        // Specifications / Resources (rich text)
-        const specsHtml = prod.specifications || prod.specs || prod.specsHtml || prod.specificationsHtml || '';
-        const resourcesHtml = prod.resources || prod.resourcesHtml || '';
-        if (elSpecs && specsHtml) mdSetRichText(elSpecs, specsHtml);
-        if (elRes && resourcesHtml) mdSetRichText(elRes, resourcesHtml);
-      }
-    } catch (e) {
-      console.warn('[sample modal] product fetch failed', e);
-    }
-
-
-    // Open modal now that first paint is ready
+  // Fetch sample
+  const sref = db.collection('users').doc(uid).collection('sampleRequests').doc(sampleId);
+  const ss = await sref.get();
+  if (!ss.exists) {
+    mdSetText(elTitle, 'Sample not found');
     openSampleModal();
-
-    // Notes live stream
-    listenNotes({ db, uid, sampleId, listContainerEl: listContainer });
-
-    // --- Composer (replace existing block) ---
-    if (elInput && elBtn) {
-      let btnRef = elBtn;                          // live reference to the current button
-
-      const hasText = () => !!(elInput.value && elInput.value.trim().length);
-      const enable = () => { btnRef.disabled = !hasText(); };
-
-      elInput.addEventListener('input', enable);
-      enable();
-
-      // remove old handlers by cloning, then rebind and update btnRef
-      const freshBtn = btnRef.cloneNode(true);
-      btnRef.parentNode.replaceChild(freshBtn, btnRef);
-      btnRef = freshBtn;
-      enable();
-
-      // optional: Ctrl/Cmd + Enter to post
-      elInput.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !btnRef.disabled) btnRef.click();
-      });
-
-      btnRef.addEventListener('click', async () => {
-        const txt = (elInput.value || '').trim();
-        if (!txt) return;
-        try {
-          btnRef.disabled = true;
-          if (elStat) elStat.textContent = 'Posting…';
-
-          // USE the batch helper that also updates parent.additionalInfo
-          await addSampleNote({ db, uid, sampleId, text: txt });
-
-          elInput.value = '';
-          if (elStat) elStat.textContent = 'Posted.';
-        } catch (e) {
-          console.error('[notes] post error', e);
-          if (elStat) elStat.textContent = 'Could not post note.';
-        } finally {
-          enable();
-          setTimeout(() => { if (elStat) elStat.textContent = ''; }, 1200);
-        }
-      });
-    }
+    return;
   }
+  const sample = ss.data() || {};
+
+  // Paint basics
+  mdSetText(elTitle, sample.material ?? 'Sample');
+  const d = sample.createdAt?.toDate ? sample.createdAt.toDate()
+    : (sample.date ? new Date(sample.date) : null);
+  mdSetText(elDate, (d && !isNaN(d)) ? d.toLocaleDateString() : '—');
+  mdSetText(elSpeci, sample.specifier ?? '—');
+  mdSetText(elJob, sample.jobName ?? '—');
+
+  // Load product extras (vendor/collection/category/color/image/specs/resources)
+  let vendorName = '';
+  let collectionName = '';
+  let categoryName = '';
+  let colorName = '';
+
+  try {
+    const prod = await fetchProductForSample(db, sample);
+    if (prod) {
+      // Vendor (resolve IDs → names)
+      const vendorRaw = prod.vendorId ?? prod.vendorID ?? prod.vendor ?? prod.vendorName ?? prod.supplier ?? prod.brand ?? null;
+      vendorName = mapId('vendors', vendorRaw);
+      mdSetText(elVend, vendorName || '—');
+
+      // Collection (resolve IDs → names; also handle array/string)
+      const collRaw = prod.collectionId ?? prod.collectionID ?? prod.collection ?? prod.collections ?? prod.collectionName ?? null;
+      collectionName = mapId('collections', collRaw) || (
+        Array.isArray(collRaw) ? collRaw.filter(Boolean).join(', ') : (collRaw || '')
+      );
+      mdSetText(elColl, collectionName || '—');
+
+      // Category (optional element)
+      if (elCat) {
+        const catRaw = prod.categoryId ?? prod.categoryID ?? prod.category ?? prod.categories ?? null;
+        categoryName = mapId('categories', catRaw) || (
+          Array.isArray(catRaw) ? catRaw.filter(Boolean).join(', ') : (catRaw || '')
+        );
+        mdSetText(elCat, categoryName || '—');
+      }
+
+      // Color (optional element)
+      if (elColor) {
+        const colorRaw = prod.colorId ?? prod.colorID ?? prod.color ?? prod.colour ?? null;
+        colorName = mapId('colors', colorRaw) || (typeof colorRaw === 'string' ? colorRaw : '');
+        mdSetText(elColor, colorName || '—');
+      }
+
+      // Image (several common shapes)
+      const imageUrl =
+        prod.image ||
+        (Array.isArray(prod.images) && (typeof prod.images[0] === 'string' ? prod.images[0] : (prod.images[0]?.url))) ||
+        prod.media?.hero ||
+        prod.heroImage ||
+        '';
+      if (imageUrl) mdSetSrc(elImg, imageUrl);
+      if (elImg) {
+        elImg.onerror = () => { elImg.onerror = null; mdSetSrc(elImg, ''); };
+        const altVend = vendorName || (typeof vendorRaw === 'string' ? vendorRaw : '');
+        elImg.setAttribute('alt', (sample.material || 'Product image') + (altVend ? ` – ${altVend}` : ''));
+      }
+
+      // Specifications / Resources (rich text)
+      const specsHtml = prod.specifications || prod.specs || prod.specsHtml || prod.specificationsHtml || '';
+      const resourcesHtml = prod.resources || prod.resourcesHtml || '';
+      if (elSpecs && specsHtml) mdSetRichText(elSpecs, specsHtml);
+      if (elRes && resourcesHtml) mdSetRichText(elRes, resourcesHtml);
+    }
+  } catch (e) {
+    console.warn('[sample modal] product fetch failed', e);
+  }
+
+  // Fallback: if still blank, try IDs stored on the sample itself
+  if ((elVend?.textContent || '—') === '—') {
+    const vRaw = sample.vendorId ?? sample.vendor ?? null;
+    const v = mapId('vendors', vRaw);
+    if (v) mdSetText(elVend, v);
+  }
+  if ((elColl?.textContent || '—') === '—') {
+    const cRaw = sample.collectionId ?? sample.collection ?? null;
+    const c = mapId('collections', cRaw);
+    if (c) mdSetText(elColl, c);
+  }
+  if (elCat && (elCat.textContent || '—') === '—') {
+    const kRaw = sample.categoryId ?? sample.category ?? null;
+    const k = mapId('categories', kRaw);
+    if (k) mdSetText(elCat, k);
+  }
+  if (elColor && (elColor.textContent || '—') === '—') {
+    const rRaw = sample.colorId ?? sample.color ?? null;
+    const r = mapId('colors', rRaw);
+    if (r) mdSetText(elColor, r);
+  }
+
+  // Open modal now that first paint is ready
+  openSampleModal();
+
+  // Notes live stream
+  listenNotes({ db, uid, sampleId, listContainerEl: listContainer });
+
+  // --- Composer (replace existing block) ---
+  if (elInput && elBtn) {
+    let btnRef = elBtn;
+
+    const hasText = () => !!(elInput.value && elInput.value.trim().length);
+    const enable = () => { btnRef.disabled = !hasText(); };
+
+    elInput.addEventListener('input', enable);
+    enable();
+
+    const freshBtn = btnRef.cloneNode(true);
+    btnRef.parentNode.replaceChild(freshBtn, btnRef);
+    btnRef = freshBtn;
+    enable();
+
+    elInput.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !btnRef.disabled) btnRef.click();
+    });
+
+    btnRef.addEventListener('click', async () => {
+      const txt = (elInput.value || '').trim();
+      if (!txt) return;
+      try {
+        btnRef.disabled = true;
+        if (elStat) elStat.textContent = 'Posting…';
+        await addSampleNote({ db, uid, sampleId, text: txt });
+        elInput.value = '';
+        if (elStat) elStat.textContent = 'Posted.';
+      } catch (e) {
+        console.error('[notes] post error', e);
+        if (elStat) elStat.textContent = 'Could not post note.';
+      } finally {
+        enable();
+        setTimeout(() => { if (elStat) elStat.textContent = ''; }, 1200);
+      }
+    });
+  }
+}
+
 
   // ---- delegate clicks from the samples table to open the modal ----
   function wireSampleRowClicksOnce() {
