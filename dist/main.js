@@ -902,10 +902,10 @@ const PROD_FIELDS = {
   name: 'formalName',
   updatedAt: 'updatedAt',
 
-  vendorId: 'vendorId',
-  categoryId: 'categoryId',
-  collectionId: 'collectionId',
-  colorId: 'colorId',
+  vendor: 'vendor',           // scalar ID
+  category: 'category',       // scalar ID
+  collection: 'collection',   // scalar ID
+  color: 'color', 
 };
 
 
@@ -924,17 +924,14 @@ function buildProductsQuery(db, startAfterDoc = null) {
   const hasSearch = !!__prodPg.search.q;
   const qtext = normalizeSearchText(__prodPg.search.q);
 
-  // pick order field
   if (hasSearch && !__prodPg.search.activeField) {
-    // try lowercased field first, then fallback to original name
-    __prodPg.search.activeField = (PROD_FIELDS.nameLower || 'formalNameLower');
+    __prodPg.search.activeField = PROD_FIELDS.nameLower || PROD_FIELDS.name;
   }
 
   const orderField = hasSearch
     ? __prodPg.search.activeField
     : (__prodPg.mode === 'updated' ? PROD_FIELDS.updatedAt : PROD_FIELDS.name);
 
-  // base query + order
   let q = col.orderBy(
     orderField,
     hasSearch ? undefined : (__prodPg.mode === 'updated' ? 'desc' : undefined)
@@ -942,10 +939,10 @@ function buildProductsQuery(db, startAfterDoc = null) {
 
   // === SCALAR filters (all with '==') ===
   const f = __prodPg.filters;
-  if (f.vendorId)     q = q.where(PROD_FIELDS.vendorId, '==', f.vendorId);
-  if (f.categoryId)   q = q.where(PROD_FIELDS.categoryId, '==', f.categoryId);
-  if (f.collectionId) q = q.where(PROD_FIELDS.collectionId, '==', f.collectionId);
-  if (f.colorId)      q = q.where(PROD_FIELDS.colorId, '==', f.colorId);
+  if (f.vendorId)     q = q.where(PROD_FIELDS.vendor, '==', f.vendorId);
+  if (f.categoryId)   q = q.where(PROD_FIELDS.category, '==', f.categoryId);
+  if (f.collectionId) q = q.where(PROD_FIELDS.collection, '==', f.collectionId);
+  if (f.colorId)      q = q.where(PROD_FIELDS.color, '==', f.colorId);
 
   // === Search prefix ===
   if (hasSearch) {
@@ -955,7 +952,7 @@ function buildProductsQuery(db, startAfterDoc = null) {
   if (startAfterDoc) q = q.startAfter(startAfterDoc);
   q = q.limit(__prodPg.limit);
 
-  // annotate for render (optional)
+  // annotate (optional)
   q.__hasSearch = hasSearch;
   q.__qtext = qtext;
   q.__orderField = orderField;
@@ -984,14 +981,13 @@ async function renderProductsPage(db, pageIdx) {
       snap = await buildProductsQuery(db, anchor).get();
     } catch (err) {
       if (__prodPg.search.q) {
-        // try fallback to the non-lower field once
         const fallbackField = PROD_FIELDS.name;
         if (__prodPg.search.activeField !== fallbackField) {
           console.warn('[products] retrying search with', fallbackField, err);
           __prodPg.search.activeField = fallbackField;
           snap = await buildProductsQuery(db, anchor).get();
         } else {
-          console.warn('[products] search failed; removing search and retrying', err);
+          console.warn('[products] search failed; clearing search and retrying', err);
           __prodPg.search.q = '';
           __prodPg.search.activeField = null;
           __prodPg.mode = 'updated';
@@ -1007,8 +1003,9 @@ async function renderProductsPage(db, pageIdx) {
     }
 
 
+
     // client-side filters to apply (due to array-contains limit)
-    const clientFilters = q.__clientFilters || { vendor: '', category: '', collection: '', color: '' };
+    const clientFilters = q.__clientFilters || { vendorId: '', categoryId: '', collectionId: '', colorId: '' };
     const results = [];
     let lastDoc = anchor || null;
 
@@ -1134,27 +1131,27 @@ function normalizeSearchText(s) {
 // Evaluate any remaining client-side filters for a given product doc
 function matchesClientFilters(data, clientFilters) {
   // For each possible filter, check presence on either scalar or array fields
-  const { vendorId, category, collection, color } = clientFilters;
+  const { vendorId, categoryId, collectionId, colorId } = clientFilters;
 
-  if (vendor) {
+  if (vendorId) {
     const v = data.vendorId ?? data.vendor ?? null;
     if (Array.isArray(v)) { if (!v.includes(vendorId)) return false; }
     else if (v !== vendorId) return false;
   }
 
-  if (category) {
+  if (categoryId) {
     const c = data.categoryIds ?? data.categoryId ?? data.category ?? data.categories ?? null;
     if (Array.isArray(c)) { if (!c.includes(categoryId)) return false; }
     else if (c !== categoryId) return false;
   }
 
-  if (collection) {
+  if (collectionId) {
     const c = data.collectionIds ?? data.collectionId ?? data.collection ?? data.collections ?? data.collectionName ?? null;
     if (Array.isArray(c)) { if (!c.includes(collectionId)) return false; }
     else if (c !== collectionId) return false;
   }
 
-  if (color) {
+  if (colorId) {
     const c = data.colorIds ?? data.colorId ?? data.color ?? data.colour ?? null;
     if (Array.isArray(c)) { if (!c.includes(colorId)) return false; }
     else if (c !== colorId) return false;
@@ -1169,10 +1166,10 @@ function matchesClientFilters(data, clientFilters) {
 // extend existing __prodPg
 Object.assign(__prodPg, {
   filters: {
-    vendor: '',       // scalar IDs (or array fields handled in query builder)
-    category: '',
-    collection: '',
-    color: '',
+    vendorId: '',       // scalar IDs (or array fields handled in query builder)
+    categoryId: '',
+    collectionId: '',
+    colorId: '',
   },
   search: {
     q: '',              // prefix text
