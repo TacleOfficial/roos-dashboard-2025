@@ -2368,58 +2368,69 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     return out;
   }
 
-  function renderLeads(){
-    const tbody = l$('[data-db="leads-tbody"]');
-    const tpl   = l$('[data-db="leads-row-template"]');
-    if (!tbody || !tpl) return;
+  function renderLeads() {
+  const tbody = l$('[data-db="leads-tbody"]');
+  const tpl   = l$('[data-db="leads-row-template"]');
+  if (!tbody || !tpl) return;
 
-    // get controls FIRST (so we can safely use them later)
-    const btnPrev = l$('[data-db="leads-prev"]');
-    const btnNext = l$('[data-db="leads-next"]');
-    const label   = l$('[data-db="leads-page-label"]');
+  // grab controls FIRST
+  const btnPrev = l$('[data-db="leads-prev"]');
+  const btnNext = l$('[data-db="leads-next"]');
+  const lbl     = l$('[data-db="leads-page-label"]');
 
-    // wipe existing rows
-    Array.from(tbody.children).forEach(ch => ch.remove());
+  // clamp page if pageSize/search changed
+  const totalPages = Math.max(1, Math.ceil(__leads.filtered.length / __leads.pageSize));
+  if (__leads.page > totalPages - 1) __leads.page = totalPages - 1;
+  if (__leads.page < 0) __leads.page = 0;
 
-    const start = __leads.page * __leads.pageSize;
-    const end   = start + __leads.pageSize;
-    const slice = __leads.filtered.slice(start, end);
-    console.log('rows:', __leads.filtered.length, 'pageSize:', __leads.pageSize);
+  // render rows
+  const start = __leads.page * __leads.pageSize;
+  const end   = start + __leads.pageSize;
 
-    const frag = document.createDocumentFragment();
-    slice.forEach(lead => {
-      const node = document.importNode(tpl.content, true);
-      const row  = l$('[data-db="lead-row"]', node);
-      lset(l$('[data-f="name"]', row),        lead.name || '—');
-      lset(l$('[data-f="company"]', row),     lead.company || '—');
-      lset(l$('[data-f="email"]', row),       lead.email || '—');
-      lset(l$('[data-f="phone"]', row),       lFmtPhone(lead.phone) || '—');
-      lset(l$('[data-f="address"]', row),     lead.address || '—');
-      lset(l$('[data-f="product"]', row),     lead.product || '—');
-      lset(l$('[data-f="description"]', row), lead.description || '—');
-      row.addEventListener('click', () => openLeadModal(lead));
-      frag.appendChild(node);
-    });
-    tbody.appendChild(frag);
+  // clear body
+  while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
 
-    if (label)   label.textContent = `Page ${__leads.page + 1}`;
-    if (btnPrev) btnPrev.disabled = __leads.page <= 0;
-    if (btnNext) btnNext.disabled = end >= __leads.filtered.length;
+  const frag = document.createDocumentFragment();
+  __leads.filtered.slice(start, end).forEach(lead => {
+    const node = document.importNode(tpl.content, true);
+    const row  = l$('[data-db="lead-row"]', node);
+    lset(l$('[data-f="name"]', row),        lead.name || '—');
+    lset(l$('[data-f="company"]', row),     lead.company || '—');
+    lset(l$('[data-f="email"]', row),       lead.email || '—');
+    lset(l$('[data-f="phone"]', row),       lFmtPhone(lead.phone) || '—');
+    lset(l$('[data-f="address"]', row),     lead.address || '—');
+    lset(l$('[data-f="product"]', row),     lead.product || '—');
+    lset(l$('[data-f="description"]', row), lead.description || '—');
+    row.addEventListener('click', () => openLeadModal(lead));
+    frag.appendChild(node);
+  });
+  tbody.appendChild(frag);
+
+  if (lbl) lbl.textContent = `Page ${__leads.page + 1}`;
+
+  // enable/disable nav
+  const hasPrev = __leads.page > 0;
+  const hasNext = end < __leads.filtered.length;
+  if (btnPrev) btnPrev.disabled = !hasPrev;
+  if (btnNext) btnNext.disabled = !hasNext;
+
+  console.log('rows:', __leads.filtered.length, 'pageSize:', __leads.pageSize);
+}
+
+
+function toStr(v) {
+  if (v == null) return '';
+  if (Array.isArray(v)) return v.join(' ');
+  if (typeof v === 'object') {
+    // try common shapes, otherwise stringify without crashing search
+    const { firstName, lastName, name, title } = v;
+    const guess = [firstName, lastName, name, title].filter(Boolean).join(' ');
+    return guess || String(v);
   }
-
-
-  function toStr(v) {
-    if (v == null) return '';
-    if (Array.isArray(v)) return v.join(' ');
-    if (typeof v === 'object') {
-      // try common shapes, otherwise stringify without crashing search
-      const { firstName, lastName, name, title } = v;
-      const guess = [firstName, lastName, name, title].filter(Boolean).join(' ');
-      return guess || String(v);
-    }
-    return String(v);
-  }
-  function lower(v) { return toStr(v).toLowerCase(); }
+  return String(v);
+}
+  
+function lower(v) { return toStr(v).toLowerCase(); }
 
   function applyLeadsSearch(term){
     const t = lower(term || '');
@@ -2445,31 +2456,42 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
 
     const search = l$('[data-db="leads-search"]');
     const pageSz = l$('[data-db="leads-page-size"]');
-    const prev   = l$('[data-db="leads-prev"]');
-    const next   = l$('[data-db="leads-next"]');
+    const btnPrev = l$('[data-db="leads-prev"]');
+    const btnNext = l$('[data-db="leads-next"]');
 
+    // page size
     if (pageSz) {
       const v = parseInt(pageSz.value, 10);
-      __leads.pageSize = isNaN(v) ? 50 : v;
-      pageSz.addEventListener('change', () => {
+      __leads.pageSize = Number.isFinite(v) && v > 0 ? v : 50;
+
+      const onSizeChange = (e) => {
+        e?.preventDefault?.();
         const n = parseInt(pageSz.value, 10);
-        __leads.pageSize = isNaN(n) ? 50 : n;
+        __leads.pageSize = Number.isFinite(n) && n > 0 ? n : 50;
         __leads.page = 0;
         renderLeads();
-      });
+      };
+      pageSz.addEventListener('change', onSizeChange);
+      pageSz.addEventListener('input', onSizeChange); // catches custom selects
     }
 
+    // search
     if (search) {
-      let t=null;
+      let t = null;
       search.addEventListener('input', () => {
         clearTimeout(t);
         t = setTimeout(() => { applyLeadsSearch(search.value); renderLeads(); }, 250);
       });
     }
 
-    prev?.addEventListener('click', () => { if (__leads.page > 0) { __leads.page--; renderLeads(); } });
-    next?.addEventListener('click', () => {
-      const start = (__leads.page+1) * __leads.pageSize;
+    // nav (prevent form submission if buttons live inside a <form>)
+    btnPrev?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (__leads.page > 0) { __leads.page--; renderLeads(); }
+    });
+    btnNext?.addEventListener('click', (e) => {
+      e.preventDefault();
+      const start = (__leads.page + 1) * __leads.pageSize;
       if (start < __leads.filtered.length) { __leads.page++; renderLeads(); }
     });
 
