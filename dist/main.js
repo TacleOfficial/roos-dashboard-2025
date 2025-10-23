@@ -486,6 +486,7 @@
       } catch (_) { }
 
       // Load user-facing features
+      await initLeadsUI(window.portalCtx);
       initChangePasswordUI(window.portalCtx);
       initProfileUI(window.portalCtx);
       initUserHeaderUI(window.portalCtx);   // ← add this      
@@ -2249,6 +2250,263 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     };
   }
   // ======== /PROFILE UI ========
+
+
+    // ===================== LEADS (ADMIN-ONLY) =====================
+  // Sources: 'leads', 'guestSampleRequests', 'guestQuoteRequests',
+  //          collectionGroup('users/*/quoteRequests'), collectionGroup('users/*/sampleRequests')
+
+  const __leads = {
+    all: [],
+    filtered: [],
+    page: 0,
+    pageSize: 50,
+    wired: false,
+  };
+
+  // Small DOM helpers (reuse your style)
+  function l$(sel, r=document){ return r.querySelector(sel); }
+  function l$$(sel, r=document){ return Array.from(r.querySelectorAll(sel)); }
+  function lset(el, v){ if (el) el.textContent = (v ?? '').toString(); }
+  function lshow(el, on=true){ if (el) el.style.display = on ? '' : 'none'; }
+
+  // Admin gate for UI
+  function enforceLeadsVisibility(isAdmin) {
+    lshow(l$('[data-db="leads-tab-link"]'), !!isAdmin);
+    lshow(l$('[data-db="leads-section"]'), !!isAdmin);
+  }
+
+  // Formatting
+  function lFmtDate(ms){
+    if (!ms) return '—';
+    try { return new Date(ms).toLocaleString([], {year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit'}); }
+    catch { return '—'; }
+  }
+  function lFmtPhone(p){
+    if (!p) return '';
+    const d = (''+p).replace(/\D/g,'');
+    return d.length===10 ? `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}` : p;
+  }
+
+  // Normalizer — unify all shapes into one row model
+  function normalizeLeadDoc(docSnap, source){
+    const d = docSnap.data() || {};
+    const first = (...keys) => keys.map(k => d[k]).find(v => v != null && v !== '') ?? null;
+
+    const tsToMs = (v) => {
+      if (!v) return 0;
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string') { const t = Date.parse(v); return isNaN(t) ? 0 : t; }
+      if (v.toDate) return v.toDate().getTime();
+      return 0;
+    };
+
+    const fullName = () => {
+      const nm = first('name','fullName','contactName');
+      if (nm) return nm;
+      const fn = first('firstName','givenName','fname');
+      const ln = first('lastName','surname','lname');
+      return [fn, ln].filter(Boolean).join(' ').trim();
+    };
+
+    const joinAddr = () => {
+      const addrObj = first('address','shippingAddress','shipTo','billingAddress');
+      if (addrObj && typeof addrObj === 'object') {
+        const parts = ['line1','line2','city','state','province','postal','zip','country']
+          .map(k => addrObj[k]).filter(Boolean);
+        if (parts.length) return parts.join(', ');
+      }
+      return first('address','cityStateZip');
+    };
+
+    return {
+      id: docSnap.id,
+      refPath: docSnap.ref.path,
+      source,
+      createdAt: tsToMs(first('createdAt','submittedAt','timestamp','created','created_on','created_at')),
+      name: fullName(),
+      company: first('company','organization','org','business'),
+      email: (first('email','mail','contactEmail') || '').toLowerCase(),
+      phone: first('phone','telephone','tel','mobile','cell'),
+      address: joinAddr(),
+      product: first('product','productName','item','sku','product_title'),
+      description: first('description','message','details','notes','comment','request'),
+      raw: d
+    };
+  }
+
+  async function fetchAllLeads(db, limitPer=500){
+    const col = (n) => db.collection(n);
+    const cg  = (n) => db.collectionGroup(n);
+
+    const qLeads   = col('leads').orderBy('createdAt','desc').limit(limitPer);
+    const qGSamp   = col('guestSampleRequests').orderBy('createdAt','desc').limit(limitPer);
+    const qGQuote  = col('guestQuoteRequests').orderBy('createdAt','desc').limit(limitPer);
+    const qUQuotes = cg('quoteRequests').orderBy('createdAt','desc').limit(limitPer);
+    const qUSamps  = cg('sampleRequests').orderBy('createdAt','desc').limit(limitPer);
+
+    const [a,b,c,d,e] = await Promise.all([
+      qLeads.get().catch(()=>({empty:true, docs:[]})),
+      qGSamp.get().catch(()=>({empty:true, docs:[]})),
+      qGQuote.get().catch(()=>({empty:true, docs:[]})),
+      qUQuotes.get().catch(()=>({empty:true, docs:[]})),
+      qUSamps.get().catch(()=>({empty:true, docs:[]})),
+    ]);
+
+    const pack = (qs, src) => (qs.docs||[]).map(s => normalizeLeadDoc(s, src));
+    const out = [
+      ...pack(a,'leads'),
+      ...pack(b,'guestSampleRequests'),
+      ...pack(c,'guestQuoteRequests'),
+      ...pack(d,'users/*/quoteRequests'),
+      ...pack(e,'users/*/sampleRequests'),
+    ];
+    out.sort((x,y)=> (y.createdAt||0) - (x.createdAt||0));
+    return out;
+  }
+
+  function renderLeads(){
+    const tbody = l$('[data-db="leads-tbody"]');
+    const tpl   = l$('[data-db="leads-row-template"]');
+    if (!tbody || !tpl) return;
+
+    // wipe existing rows
+    Array.from(tbody.children).forEach(ch => ch.remove());
+
+    const start = __leads.page * __leads.pageSize;
+    const slice = __leads.filtered.slice(start, start + __leads.pageSize);
+
+    const frag = document.createDocumentFragment();
+    slice.forEach(lead => {
+      const node = document.importNode(tpl.content, true);
+      const row  = l$('[data-db="lead-row"]', node);
+
+      lset(l$('[data-f="name"]', row), lead.name || '—');
+      lset(l$('[data-f="company"]', row), lead.company || '—');
+      lset(l$('[data-f="email"]', row), lead.email || '—');
+      lset(l$('[data-f="phone"]', row), lFmtPhone(lead.phone) || '—');
+      lset(l$('[data-f="address"]', row), lead.address || '—');
+      lset(l$('[data-f="product"]', row), lead.product || '—');
+      lset(l$('[data-f="description"]', row), lead.description || '—');
+
+      row.addEventListener('click', () => openLeadModal(lead));
+      frag.appendChild(node);
+    });
+
+    tbody.appendChild(frag);
+
+    const label = l$('[data-db="leads-page-label"]');
+    if (label) label.textContent = `Page ${__leads.page + 1}`;
+
+    const prev = l$('[data-db="leads-prev"]');
+    const next = l$('[data-db="leads-next"]');
+    if (prev) prev.disabled = __leads.page <= 0;
+    if (next) next.disabled = (start + __leads.pageSize) >= __leads.filtered.length;
+  }
+
+  function applyLeadsSearch(term){
+    const t = (term || '').trim().toLowerCase();
+    if (!t) {
+      __leads.filtered = __leads.all.slice();
+      __leads.page = 0;
+      return;
+    }
+    __leads.filtered = __leads.all.filter(l => {
+      const nm = (l.name||'').toLowerCase();
+      const co = (l.company||'').toLowerCase();
+      const em = (l.email||'').toLowerCase();
+      const pr = (l.product||'').toLowerCase();
+      return nm.startsWith(t) || co.includes(t) || em.includes(t) || pr.includes(t);
+    });
+    __leads.page = 0;
+  }
+
+  function wireLeadsControlsOnce(){
+    if (__leads.wired) return;
+    __leads.wired = true;
+
+    const search = l$('[data-db="leads-search"]');
+    const pageSz = l$('[data-db="leads-page-size"]');
+    const prev   = l$('[data-db="leads-prev"]');
+    const next   = l$('[data-db="leads-next"]');
+
+    if (pageSz) {
+      const v = parseInt(pageSz.value, 10);
+      __leads.pageSize = isNaN(v) ? 50 : v;
+      pageSz.addEventListener('change', () => {
+        const n = parseInt(pageSz.value, 10);
+        __leads.pageSize = isNaN(n) ? 50 : n;
+        __leads.page = 0;
+        renderLeads();
+      });
+    }
+
+    if (search) {
+      let t=null;
+      search.addEventListener('input', () => {
+        clearTimeout(t);
+        t = setTimeout(() => { applyLeadsSearch(search.value); renderLeads(); }, 250);
+      });
+    }
+
+    prev?.addEventListener('click', () => { if (__leads.page > 0) { __leads.page--; renderLeads(); } });
+    next?.addEventListener('click', () => {
+      const start = (__leads.page+1) * __leads.pageSize;
+      if (start < __leads.filtered.length) { __leads.page++; renderLeads(); }
+    });
+
+    wireLeadModalCloseOnce();
+  }
+
+  function openLeadModal(lead){
+    const modal = l$('[data-db="lead-modal"]'); if (!modal) return;
+    lset(l$('[data-f="modal-source"]', modal), `Source: ${lead.source}`);
+    lset(l$('[data-f="modal-created"]', modal), `Created: ${lFmtDate(lead.createdAt)}`);
+    lset(l$('[data-f="modal-name"]', modal), lead.name || '—');
+    lset(l$('[data-f="modal-company"]', modal), lead.company || '—');
+    lset(l$('[data-f="modal-email"]', modal), lead.email || '—');
+    lset(l$('[data-f="modal-phone"]', modal), lFmtPhone(lead.phone) || '—');
+    lset(l$('[data-f="modal-address"]', modal), lead.address || '—');
+    lset(l$('[data-f="modal-product"]', modal), lead.product || '—');
+    lset(l$('[data-f="modal-description"]', modal), lead.description || '—');
+    lset(l$('[data-f="modal-refpath"]', modal), lead.refPath || '');
+    lshow(modal, true);
+  }
+
+  function wireLeadModalCloseOnce(){
+    const modal = l$('[data-db="lead-modal"]');
+    const btn   = l$('[data-db="lead-modal-close"]');
+    if (!modal || modal.dataset.leadsInit === '1') return;
+    modal.dataset.leadsInit = '1';
+
+    btn?.addEventListener('click', () => lshow(modal, false));
+    // click outside to close (optional)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) lshow(modal, false);
+    });
+  }
+
+  async function initLeadsUI(ctx){
+    // Hide by default, then reveal if admin
+    enforceLeadsVisibility(false);
+
+    const isAdmin = !!ctx.admin;
+    enforceLeadsVisibility(isAdmin);
+    if (!isAdmin) return;
+
+    // Wire once + load
+    wireLeadsControlsOnce();
+
+    try {
+      __leads.all = await fetchAllLeads(ctx.db, 500);
+      __leads.filtered = __leads.all.slice();
+      renderLeads();
+    } catch (e) {
+      console.error('[leads] load failed', e);
+    }
+  }
+  // =================== /LEADS (ADMIN-ONLY) ===================
+
 
 
 
