@@ -2338,23 +2338,29 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     };
   }
 
+  async function tryGet(q, label){
+    try { return await q.get(); }
+    catch (err) {
+      console.error(`[leads] ${label} failed`, err);
+      return { empty:true, docs:[] };
+    }
+  }
+
+
   async function fetchAllLeads(db, limitPer=500){
     const col = (n) => db.collection(n);
     const cg  = (n) => db.collectionGroup(n);
 
-    const qLeads   = col('leads').orderBy('createdAt','desc').limit(limitPer);
-    const qGSamp   = col('guestSampleRequests').orderBy('createdAt','desc').limit(limitPer);
-    const qGQuote  = col('guestQuoteRequests').orderBy('createdAt','desc').limit(limitPer);
-    const qUQuotes = cg('quoteRequests').orderBy('createdAt','desc').limit(limitPer);
-    const qUSamps  = cg('sampleRequests').orderBy('createdAt','desc').limit(limitPer);
+    const qLeads   = tryGet(col('leads').orderBy('createdAt','desc').limit(limitPer), 'leads');
+    const qGSamp   = tryGet(col('guestSampleRequests').orderBy('createdAt','desc').limit(limitPer), 'guestSampleRequests');
+    const qGQuote  = tryGet(col('guestQuoteRequests').orderBy('createdAt','desc').limit(limitPer), 'guestQuoteRequests');
 
-    const [a,b,c,d,e] = await Promise.all([
-      qLeads.get().catch(()=>({empty:true, docs:[]})),
-      qGSamp.get().catch(()=>({empty:true, docs:[]})),
-      qGQuote.get().catch(()=>({empty:true, docs:[]})),
-      qUQuotes.get().catch(()=>({empty:true, docs:[]})),
-      qUSamps.get().catch(()=>({empty:true, docs:[]})),
-    ]);
+    const qUQuotes = tryGet(cg('quoteRequests').orderBy('createdAt','desc').limit(limitPer),
+                            'users/*/quoteRequests (collectionGroup)');
+    const qUSamps  = tryGet(cg('sampleRequests').orderBy('createdAt','desc').limit(limitPer),
+                            'users/*/sampleRequests (collectionGroup)');
+
+    const [a,b,c,d,e] = await Promise.all([qLeads, qGSamp, qGQuote, qUQuotes, qUSamps]);
 
     const pack = (qs, src) => (qs.docs||[]).map(s => normalizeLeadDoc(s, src));
     const out = [
