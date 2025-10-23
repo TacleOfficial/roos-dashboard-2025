@@ -2319,18 +2319,21 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
       return first('address','cityStateZip');
     };
 
+    function s(v){ return toStr(v).trim(); }     // reuse toStr from above
+    function sl(v){ return s(v).toLowerCase(); } // for email
+
     return {
       id: docSnap.id,
       refPath: docSnap.ref.path,
       source,
       createdAt: tsToMs(first('createdAt','submittedAt','timestamp','created','created_on','created_at')),
-      name: fullName(),
-      company: first('company','organization','org','business'),
-      email: (first('email','mail','contactEmail') || '').toLowerCase(),
-      phone: first('phone','telephone','tel','mobile','cell'),
-      address: joinAddr(),
-      product: first('product','productName','item','sku','product_title'),
-      description: first('description','message','details','notes','comment','request'),
+      name: s(fullName()),
+      company: s(first('company','organization','org','business')),
+      email: sl(first('email','mail','contactEmail')),
+      phone: s(first('phone','telephone','tel','mobile','cell')),
+      address: s(joinAddr()),
+      product: s(first('product','productName','item','sku','product_title')),
+      description: s(first('description','message','details','notes','comment','request')),
       raw: d
     };
   }
@@ -2375,7 +2378,9 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
 
     const start = __leads.page * __leads.pageSize;
     const slice = __leads.filtered.slice(start, start + __leads.pageSize);
-
+    next.disabled = (start + __leads.pageSize) >= __leads.filtered.length;
+    console.log('rows:', __leads.filtered.length, 'pageSize:', __leads.pageSize);
+  
     const frag = document.createDocumentFragment();
     slice.forEach(lead => {
       const node = document.importNode(tpl.content, true);
@@ -2404,18 +2409,32 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     if (next) next.disabled = (start + __leads.pageSize) >= __leads.filtered.length;
   }
 
+  function toStr(v) {
+    if (v == null) return '';
+    if (Array.isArray(v)) return v.join(' ');
+    if (typeof v === 'object') {
+      // try common shapes, otherwise stringify without crashing search
+      const { firstName, lastName, name, title } = v;
+      const guess = [firstName, lastName, name, title].filter(Boolean).join(' ');
+      return guess || String(v);
+    }
+    return String(v);
+  }
+  function lower(v) { return toStr(v).toLowerCase(); }
+
   function applyLeadsSearch(term){
-    const t = (term || '').trim().toLowerCase();
+    const t = lower(term || '');
     if (!t) {
       __leads.filtered = __leads.all.slice();
       __leads.page = 0;
       return;
     }
+
     __leads.filtered = __leads.all.filter(l => {
-      const nm = (l.name||'').toLowerCase();
-      const co = (l.company||'').toLowerCase();
-      const em = (l.email||'').toLowerCase();
-      const pr = (l.product||'').toLowerCase();
+      const nm = lower(l.name);
+      const co = lower(l.company);
+      const em = lower(l.email);
+      const pr = lower(l.product);
       return nm.startsWith(t) || co.includes(t) || em.includes(t) || pr.includes(t);
     });
     __leads.page = 0;
