@@ -2373,41 +2373,40 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     const tpl   = l$('[data-db="leads-row-template"]');
     if (!tbody || !tpl) return;
 
+    // get controls FIRST (so we can safely use them later)
+    const btnPrev = l$('[data-db="leads-prev"]');
+    const btnNext = l$('[data-db="leads-next"]');
+    const label   = l$('[data-db="leads-page-label"]');
+
     // wipe existing rows
     Array.from(tbody.children).forEach(ch => ch.remove());
 
     const start = __leads.page * __leads.pageSize;
-    const slice = __leads.filtered.slice(start, start + __leads.pageSize);
-    next.disabled = (start + __leads.pageSize) >= __leads.filtered.length;
+    const end   = start + __leads.pageSize;
+    const slice = __leads.filtered.slice(start, end);
     console.log('rows:', __leads.filtered.length, 'pageSize:', __leads.pageSize);
-  
+
     const frag = document.createDocumentFragment();
     slice.forEach(lead => {
       const node = document.importNode(tpl.content, true);
       const row  = l$('[data-db="lead-row"]', node);
-
-      lset(l$('[data-f="name"]', row), lead.name || '—');
-      lset(l$('[data-f="company"]', row), lead.company || '—');
-      lset(l$('[data-f="email"]', row), lead.email || '—');
-      lset(l$('[data-f="phone"]', row), lFmtPhone(lead.phone) || '—');
-      lset(l$('[data-f="address"]', row), lead.address || '—');
-      lset(l$('[data-f="product"]', row), lead.product || '—');
+      lset(l$('[data-f="name"]', row),        lead.name || '—');
+      lset(l$('[data-f="company"]', row),     lead.company || '—');
+      lset(l$('[data-f="email"]', row),       lead.email || '—');
+      lset(l$('[data-f="phone"]', row),       lFmtPhone(lead.phone) || '—');
+      lset(l$('[data-f="address"]', row),     lead.address || '—');
+      lset(l$('[data-f="product"]', row),     lead.product || '—');
       lset(l$('[data-f="description"]', row), lead.description || '—');
-
       row.addEventListener('click', () => openLeadModal(lead));
       frag.appendChild(node);
     });
-
     tbody.appendChild(frag);
 
-    const label = l$('[data-db="leads-page-label"]');
-    if (label) label.textContent = `Page ${__leads.page + 1}`;
-
-    const prev = l$('[data-db="leads-prev"]');
-    const next = l$('[data-db="leads-next"]');
-    if (prev) prev.disabled = __leads.page <= 0;
-    if (next) next.disabled = (start + __leads.pageSize) >= __leads.filtered.length;
+    if (label)   label.textContent = `Page ${__leads.page + 1}`;
+    if (btnPrev) btnPrev.disabled = __leads.page <= 0;
+    if (btnNext) btnNext.disabled = end >= __leads.filtered.length;
   }
+
 
   function toStr(v) {
     if (v == null) return '';
