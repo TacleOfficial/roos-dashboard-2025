@@ -2388,19 +2388,19 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
   const end   = start + __leads.pageSize;
 
   // clear body
-  while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+  Array.from(tbody.children).forEach(ch => { if (ch !== tpl) ch.remove(); });
 
   const frag = document.createDocumentFragment();
   __leads.filtered.slice(start, end).forEach(lead => {
     const node = document.importNode(tpl.content, true);
     const row  = l$('[data-db="lead-row"]', node);
-    lset(l$('[data-f="name"]', row),        lead.name || '—');
-    lset(l$('[data-f="company"]', row),     lead.company || '—');
-    lset(l$('[data-f="email"]', row),       lead.email || '—');
-    lset(l$('[data-f="phone"]', row),       lFmtPhone(lead.phone) || '—');
-    lset(l$('[data-f="address"]', row),     lead.address || '—');
-    lset(l$('[data-f="product"]', row),     lead.product || '—');
-    lset(l$('[data-f="description"]', row), lead.description || '—');
+    lset(l$('[data-f="name"]', row),        lead.name || '-');
+    lset(l$('[data-f="company"]', row),     lead.company || '-');
+    lset(l$('[data-f="email"]', row),       lead.email || '-');
+    lset(l$('[data-f="phone"]', row),       lFmtPhone(lead.phone) || '-');
+    lset(l$('[data-f="address"]', row),     lead.address || '-');
+    lset(l$('[data-f="product"]', row),     lead.product || '-');
+    lset(l$('[data-f="description"]', row), lead.description || '-');
     row.addEventListener('click', () => openLeadModal(lead));
     frag.appendChild(node);
   });
@@ -2437,6 +2437,7 @@ function lower(v) { return toStr(v).toLowerCase(); }
     if (!t) {
       __leads.filtered = __leads.all.slice();
       __leads.page = 0;
+      console.debug('[leads] search cleared; total', __leads.filtered.length); // ← HERE
       return;
     }
 
@@ -2448,11 +2449,13 @@ function lower(v) { return toStr(v).toLowerCase(); }
       return nm.startsWith(t) || co.includes(t) || em.includes(t) || pr.includes(t);
     });
     __leads.page = 0;
+    console.debug('[leads] search applied', { term: t, results: __leads.filtered.length }); // ← HERE
   }
 
 function wireLeadsControlsOnce(){
   if (__leads.wired) return;
   __leads.wired = true;
+  console.debug('[leads] controls wired');
 
   // pick up initial page size from DOM if present
   const pageSzEl = document.querySelector('[data-db="leads-page-size"]');
@@ -2475,6 +2478,7 @@ function wireLeadsControlsOnce(){
     );
     __leads.pageSize = Number.isFinite(n) && n > 0 ? n : 50;
     __leads.page = 0;
+    console.debug('[leads] page-size →', __leads.pageSize);
     renderLeads();
   }, true);
 
@@ -2484,7 +2488,9 @@ function wireLeadsControlsOnce(){
     if (!el) return;
     clearTimeout(__leads._searchT);
     __leads._searchT = setTimeout(() => {
+      console.debug('[leads] search →', el.value);   // ← HERE
       applyLeadsSearch(el.value || '');
+      console.debug('[leads] search results', __leads.filtered.length); // ← HERE (optional)
       renderLeads();
     }, 250);
   }, true);
@@ -2494,6 +2500,7 @@ function wireLeadsControlsOnce(){
     const prev = e.target.closest('[data-db="leads-prev"]');
     if (prev) {
       e.preventDefault();
+      console.debug('[leads] prev click');           // ← HERE
       if (__leads.page > 0) { __leads.page--; renderLeads(); }
       return;
     }
@@ -2501,6 +2508,7 @@ function wireLeadsControlsOnce(){
     const next = e.target.closest('[data-db="leads-next"]');
     if (next) {
       e.preventDefault();
+      console.debug('[leads] next click');           // ← HERE
       const nextStart = (__leads.page + 1) * __leads.pageSize;
       if (nextStart < __leads.filtered.length) { __leads.page++; renderLeads(); }
     }
