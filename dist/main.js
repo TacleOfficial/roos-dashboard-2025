@@ -2450,53 +2450,65 @@ function lower(v) { return toStr(v).toLowerCase(); }
     __leads.page = 0;
   }
 
-  function wireLeadsControlsOnce(){
-    if (__leads.wired) return;
-    __leads.wired = true;
+function wireLeadsControlsOnce(){
+  if (__leads.wired) return;
+  __leads.wired = true;
 
-    const search = l$('[data-db="leads-search"]');
-    const pageSz = l$('[data-db="leads-page-size"]');
-    const btnPrev = l$('[data-db="leads-prev"]');
-    const btnNext = l$('[data-db="leads-next"]');
+  // pick up initial page size from DOM if present
+  const pageSzEl = document.querySelector('[data-db="leads-page-size"]');
+  if (pageSzEl) {
+    const v = parseInt(
+      pageSzEl.value || pageSzEl.getAttribute('data-value') || pageSzEl.getAttribute('data-size') || '',
+      10
+    );
+    if (Number.isFinite(v) && v > 0) __leads.pageSize = v;
+  }
 
-    // page size
-    if (pageSz) {
-      const v = parseInt(pageSz.value, 10);
-      __leads.pageSize = Number.isFinite(v) && v > 0 ? v : 50;
+  // DELEGATED: page-size changes (works for native selects *and* custom selects that swap DOM)
+  document.addEventListener('change', (e) => {
+    const el = e.target.closest('[data-db="leads-page-size"]');
+    if (!el) return;
 
-      const onSizeChange = (e) => {
-        e?.preventDefault?.();
-        const n = parseInt(pageSz.value, 10);
-        __leads.pageSize = Number.isFinite(n) && n > 0 ? n : 50;
-        __leads.page = 0;
-        renderLeads();
-      };
-      pageSz.addEventListener('change', onSizeChange);
-      pageSz.addEventListener('input', onSizeChange); // catches custom selects
-    }
+    const n = parseInt(
+      el.value || el.getAttribute('data-value') || el.getAttribute('data-size') || '',
+      10
+    );
+    __leads.pageSize = Number.isFinite(n) && n > 0 ? n : 50;
+    __leads.page = 0;
+    renderLeads();
+  }, true);
 
-    // search
-    if (search) {
-      let t = null;
-      search.addEventListener('input', () => {
-        clearTimeout(t);
-        t = setTimeout(() => { applyLeadsSearch(search.value); renderLeads(); }, 250);
-      });
-    }
+  // DELEGATED: search (debounced)
+  document.addEventListener('input', (e) => {
+    const el = e.target.closest('[data-db="leads-search"]');
+    if (!el) return;
+    clearTimeout(__leads._searchT);
+    __leads._searchT = setTimeout(() => {
+      applyLeadsSearch(el.value || '');
+      renderLeads();
+    }, 250);
+  }, true);
 
-    // nav (prevent form submission if buttons live inside a <form>)
-    btnPrev?.addEventListener('click', (e) => {
+  // DELEGATED: prev/next (prevents form submits & follows replaced nodes)
+  document.addEventListener('click', (e) => {
+    const prev = e.target.closest('[data-db="leads-prev"]');
+    if (prev) {
       e.preventDefault();
       if (__leads.page > 0) { __leads.page--; renderLeads(); }
-    });
-    btnNext?.addEventListener('click', (e) => {
-      e.preventDefault();
-      const start = (__leads.page + 1) * __leads.pageSize;
-      if (start < __leads.filtered.length) { __leads.page++; renderLeads(); }
-    });
+      return;
+    }
 
-    wireLeadModalCloseOnce();
-  }
+    const next = e.target.closest('[data-db="leads-next"]');
+    if (next) {
+      e.preventDefault();
+      const nextStart = (__leads.page + 1) * __leads.pageSize;
+      if (nextStart < __leads.filtered.length) { __leads.page++; renderLeads(); }
+    }
+  }, true);
+
+  wireLeadModalCloseOnce();
+}
+
 
   function openLeadModal(lead){
     const modal = l$('[data-db="lead-modal"]'); if (!modal) return;
