@@ -2288,6 +2288,14 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     return d.length===10 ? `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}` : p;
   }
 
+  function tsToMsGeneric(v){
+  if (!v) return 0;
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') { const t = Date.parse(v); return isNaN(t) ? 0 : t; }
+  return v.toDate ? v.toDate().getTime() : 0;
+}
+
+
   // Normalizer — unify all shapes into one row model
   function normalizeLeadDoc(docSnap, source){
     const d = docSnap.data() || {};
@@ -2307,12 +2315,18 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     const address = pickAddress(d);
     const product = pickProduct(d);
     const description = pickDescription(d);
+    const created = tsToMsGeneric(firstNonEmpty(d,['createdAt','submittedAt','timestamp','created','created_on','created_at']));
+    const updated = Math.max(tsToMsGeneric(firstNonEmpty(d, ['latestNoteAt','updatedAt'])), created);
+    const seen    = tsToMsGeneric(firstNonEmpty(d, ['adminSeenAt','seenAt','readAt','viewedAt']));
 
     return {
       id: docSnap.id,
       refPath: docSnap.ref.path,
       source,
-      createdAt: tsToMs(firstNonEmpty(d,['createdAt','submittedAt','timestamp','created','created_on','created_at'])),
+      createdAt: created,
+      updatedAt: updated,
+      seenAt: seen,
+      unread: !seen || updated > seen,
       name: String(name || '').trim(),
       company: String(toStr(company)).trim(),
       email: String(toStr(email)).toLowerCase().trim(),
@@ -2323,6 +2337,26 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
       raw: d
     };
   }
+
+    async function markLeadSeen(db, lead){
+    try {
+      const ref = db.doc(lead.refPath);
+      const now = firebase.firestore.FieldValue.serverTimestamp();
+      const uid = window.portalCtx?.auth?.currentUser?.uid || null;
+
+      const payload = { adminSeenAt: now };
+      if (uid) payload[`adminSeenBy.${uid}`] = now; // per-admin trail (optional)
+
+      await ref.set(payload, { merge: true });
+
+      // keep local state + UI in sync immediately
+      lead.unread = false;
+      lead.seenAt = Date.now();
+    } catch (e) {
+      console.warn('[leads] markLeadSeen failed', e);
+    }
+  }
+
 
   async function tryGet(q, label){
     try { return await q.get(); }
@@ -2386,6 +2420,7 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
   __leads.filtered.slice(start, end).forEach(lead => {
     const node = document.importNode(tpl.content, true);
     const row  = l$('[data-db="lead-row"]', node);
+    if (lead.unread) row.classList.add('is-unread'); else row.classList.remove('is-unread');
     lset(l$('[data-f="name"]', row),        lead.name || '-');
     lset(l$('[data-f="company"]', row),     lead.company || '-');
     lset(l$('[data-f="email"]', row),       lead.email || '-');
@@ -2394,7 +2429,13 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     lset(l$('[data-f="address"]', row),     lead.address || '-');
     lset(l$('[data-f="product"]', row),     lead.product || '-');
     lset(l$('[data-f="description"]', row), lead.description || '-');
-    row.addEventListener('click', () => openLeadModal(lead));
+    row.addEventListener('click', async () => {
+      openLeadModal(lead);
+      if (lead.unread) {
+        row.classList.remove('is-unread'); // instant UI feedback
+        await markLeadSeen(window.portalCtx.db, lead);
+      }
+    });
     frag.appendChild(node);
   });
   tbody.appendChild(frag);
