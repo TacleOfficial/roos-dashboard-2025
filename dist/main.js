@@ -2611,7 +2611,7 @@ function wireLeadsControlsOnce(){
 
   function openLeadModal(lead){
     const modal = l$('[data-db="lead-modal"]'); if (!modal) return;
-    lset(l$('[data-f="modal-source"]', modal), `Source: ${lead.source}`);
+    lset(l$('[data-f="modal-source"]', modal), `comes from ${lead.source}`);
     lset(l$('[data-f="modal-created"]', modal), `Created: ${lFmtDate(lead.createdAt)}`);
     lset(l$('[data-f="modal-name"]', modal), lead.name || '—');
     lset(l$('[data-f="modal-company"]', modal), lead.company || '—');
