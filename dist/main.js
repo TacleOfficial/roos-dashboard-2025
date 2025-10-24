@@ -2608,6 +2608,66 @@ function wireLeadsControlsOnce(){
   wireLeadModalCloseOnce();
 }
 
+  // ===== Notes (Lead modal) =====
+  let __leadNotesUnsub = null;
+  function stopLeadNotes(){ if (typeof __leadNotesUnsub === 'function'){ __leadNotesUnsub(); __leadNotesUnsub = null; } }
+
+  function lnFormatStamp(ts){
+    const d = ts?.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+    return (d && !isNaN(d)) ? d.toLocaleString() : '';
+  }
+
+  function paintLeadNotesList(containerEl, snap){
+    if (!containerEl) return;
+    const tpl = containerEl.querySelector('[data-db="lead-note-template"]');
+    if (!tpl) return;
+
+    // clear all rendered rows (keep template)
+    Array.from(containerEl.children).forEach(ch => { if (ch !== tpl) ch.remove(); });
+
+    if (snap.empty){
+      const node = document.importNode(tpl.content, true);
+      const row  = node.querySelector('.note-row') || node.firstElementChild;
+      const t = node.querySelector('[data-n="text"]');
+      const d = node.querySelector('[data-n="date"]');
+      if (t) t.textContent = 'No notes yet.';
+      if (d) d.textContent = '';
+      containerEl.appendChild(node);
+      return;
+    }
+
+    snap.forEach(doc => {
+      const n = doc.data() || {};
+      const node = document.importNode(tpl.content, true);
+      const t = node.querySelector('[data-n="text"]');
+      const d = node.querySelector('[data-n="date"]');
+      if (t) t.textContent = (n.text || n.note || n.message || '').trim();
+      if (d) d.textContent = lnFormatStamp(n.createdAt);
+      containerEl.appendChild(node);
+    });
+  }
+
+  function listenLeadNotes({ db, refPath, listContainerEl }){
+    stopLeadNotes();
+    const ref = db.doc(refPath).collection('notes').orderBy('createdAt','desc');
+    __leadNotesUnsub = ref.onSnapshot(snap => paintLeadNotesList(listContainerEl, snap));
+  }
+
+  async function postLeadNote({ db, refPath, text, authorUid }){
+    const parentRef = db.doc(refPath);
+    const noteRef   = parentRef.collection('notes').doc();
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    const clean = String(text || '').trim();
+
+    const batch = db.batch();
+    batch.set(noteRef, { text: clean, authorUid: authorUid || '', createdAt: now });
+    // denormalize latest onto parent (optional but useful)
+    batch.set(parentRef, { latestNote: clean, latestNoteAt: now }, { merge: true });
+    await batch.commit();
+  }
+  // ===== /Notes (Lead modal) =====
+
+
 
   function openLeadModal(lead){
     const modal = l$('[data-db="lead-modal"]'); if (!modal) return;
@@ -2621,7 +2681,60 @@ function wireLeadsControlsOnce(){
     lset(l$('[data-f="modal-product"]', modal), lead.product || '—');
     lset(l$('[data-f="modal-description"]', modal), lead.description || '—');
     lset(l$('[data-f="modal-refpath"]', modal), lead.refPath || '');
+
+      // --- NEW: notes wiring ---
+    const db  = window.portalCtx?.db;
+    const uid = window.portalCtx?.auth?.currentUser?.uid || '';
+
+    const listContainer = l$('[data-db="lead-notes-list"]', modal);
+    const elInput = l$('[data-db="lead-note-input"]', modal);
+    const elBtn   = l$('[data-db="lead-note-submit"]', modal);
+    const elStat  = l$('[data-db="lead-note-status"]', modal);
+
+    if (listContainer && db && lead.refPath) {
+      listenLeadNotes({ db, refPath: lead.refPath, listContainerEl: listContainer });
+    }
+
+    if (elInput && elBtn) {
+      let btnRef = elBtn;
+      elInput.value = '';
+      const enable = () => { btnRef.disabled = !(elInput.value && elInput.value.trim().length); };
+      elInput.addEventListener('input', enable); enable();
+
+      // replace to drop old listeners
+      const fresh = btnRef.cloneNode(true);
+      btnRef.parentNode.replaceChild(fresh, btnRef);
+      btnRef = fresh; enable();
+
+      elInput.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !btnRef.disabled) btnRef.click();
+      });
+
+      btnRef.addEventListener('click', async () => {
+        const txt = (elInput.value || '').trim();
+        if (!txt || !db || !lead.refPath) return;
+        try {
+          btnRef.disabled = true;
+          if (elStat) elStat.textContent = 'Posting…';
+          await postLeadNote({ db, refPath: lead.refPath, text: txt, authorUid: uid });
+          elInput.value = '';
+          if (elStat) elStat.textContent = 'Posted.';
+        } catch (e) {
+          console.error('[lead notes] post error', e);
+          if (elStat) elStat.textContent = 'Could not post note.';
+        } finally {
+          enable();
+          setTimeout(() => { if (elStat) elStat.textContent = ''; }, 1200);
+        }
+      });
+    }
+    // --- /NEW ---
+
+
     lshow(modal, true);
+
+
+
   }
 
   function wireLeadModalCloseOnce(){
@@ -2630,10 +2743,9 @@ function wireLeadsControlsOnce(){
     if (!modal || modal.dataset.leadsInit === '1') return;
     modal.dataset.leadsInit = '1';
 
-    btn?.addEventListener('click', () => lshow(modal, false));
-    // click outside to close (optional)
+    btn?.addEventListener('click', () => { lshow(modal, false); stopLeadNotes(); });
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) lshow(modal, false);
+      if (e.target === modal) { lshow(modal, false); stopLeadNotes(); }
     });
   }
 
