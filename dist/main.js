@@ -2451,24 +2451,59 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
   }
 
 
-function pickAddress(d) {
-  // 1) direct string address
-  const str = firstNonEmpty(d, ['companyAddress','address']);
-  if (str && typeof str === 'string') return str;
+  function pickAddress(d) {
+    // Treat companyAddress/address as either objects *or* plain strings (line1)
+    const line1 = firstNonEmpty(d, [
+      'companyAddress.line1','address.line1',
+      'companyAddress.address1','address.address1',
+      'companyAddress.street1','address.street1',
+      'companyAddress','address',
+      'line1','address1','street1','street',
+      'shipTo.line1','shippingAddress.line1'
+    ]);
 
-  // 2) object-ish address (companyAddress/address may be an object)
-  const obj = (typeof str === 'object' && str) || null;
+    const line2 = firstNonEmpty(d, [
+      'companyAddress.line2','address.line2',
+      'companyAddress.address2','address.address2',
+      'companyAddress.street2','address.street2',
+      'line2','address2','street2',
+      'shipTo.line2','shippingAddress.line2',
+      'unit','apt','suite'
+    ]);
 
-  const line1   = firstNonEmpty(obj || d, ['line1','address1','street1','street','shipTo.line1']);
-  const line2   = firstNonEmpty(obj || d, ['line2','address2','street2','shipTo.line2']);
-  const city    = firstNonEmpty(obj || d, ['city','shipTo.city']);
-  const state   = firstNonEmpty(obj || d, ['state','province','shipTo.state','shipTo.province']);
-  const postal  = firstNonEmpty(obj || d, ['zip','postal','postalCode','shipTo.zip','shipTo.postal']);
-  const country = firstNonEmpty(obj || d, ['country','shipTo.country']);
+    const city = firstNonEmpty(d, [
+      'companyAddress.city','address.city','city',
+      'shipTo.city','shippingAddress.city'
+    ]);
 
-  const parts = [line1,line2,city,state,postal,country].map(toStr).filter(Boolean);
-  return parts.join(', ');
-}
+    const state = firstNonEmpty(d, [
+      'companyAddress.state','address.state','state','province','region',
+      'shipTo.state','shipTo.province','shippingAddress.state','shippingAddress.province'
+    ]);
+
+    const postal = firstNonEmpty(d, [
+      'companyAddress.zip','address.zip','zip','postal','postalCode','postcode',
+      'shipTo.zip','shipTo.postal','shippingAddress.zip','shippingAddress.postal'
+    ]);
+
+    const country = firstNonEmpty(d, [
+      'companyAddress.country','address.country','country',
+      'shipTo.country','shippingAddress.country'
+    ]);
+
+    // Build, trim, and de-dupe in case some fields repeat
+    const parts = [line1, line2, city, state, postal, country]
+      .map(toStr)
+      .map(s => s.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    const seen = new Set();
+    const uniq = [];
+    for (const p of parts) { const k = p.toLowerCase(); if (!seen.has(k)) { seen.add(k); uniq.push(p); } }
+
+    // If you want multi-line in the cell, use '\n' and CSS `white-space: pre-line`
+    return uniq.join(', ');
+  }
 
 
 function toStr(v) {
