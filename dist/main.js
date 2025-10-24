@@ -2291,7 +2291,6 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
   // Normalizer — unify all shapes into one row model
   function normalizeLeadDoc(docSnap, source){
     const d = docSnap.data() || {};
-    const first = (...keys) => keys.map(k => d[k]).find(v => v != null && v !== '') ?? null;
 
     const tsToMs = (v) => {
       if (!v) return 0;
@@ -2301,39 +2300,26 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
       return 0;
     };
 
-    const fullName = () => {
-      const nm = first('name','fullName','contactName');
-      if (nm) return nm;
-      const fn = first('firstName','givenName','fname');
-      const ln = first('lastName','surname','lname');
-      return [fn, ln].filter(Boolean).join(' ').trim();
-    };
-
-    const joinAddr = () => {
-      const addrObj = first('address','shippingAddress','shipTo','billingAddress');
-      if (addrObj && typeof addrObj === 'object') {
-        const parts = ['line1','line2','city','state','province','postal','zip','country']
-          .map(k => addrObj[k]).filter(Boolean);
-        if (parts.length) return parts.join(', ');
-      }
-      return first('address','cityStateZip');
-    };
-
-    function s(v){ return toStr(v).trim(); }     // reuse toStr from above
-    function sl(v){ return s(v).toLowerCase(); } // for email
+    const name = pickName(d);
+    const company = firstNonEmpty(d, ['company','organization','org','business']);
+    const email = firstNonEmpty(d, ['email','mail','contactEmail','companyEmail']);
+    const phone = pickPhone(d);
+    const address = pickAddress(d);
+    const product = pickProduct(d);
+    const description = pickDescription(d);
 
     return {
       id: docSnap.id,
       refPath: docSnap.ref.path,
       source,
-      createdAt: tsToMs(first('createdAt','submittedAt','timestamp','created','created_on','created_at')),
-      name: s(fullName()),
-      company: s(first('company','organization','org','business')),
-      email: sl(first('email','mail','contactEmail')),
-      phone: s(first('phone','telephone','tel','mobile','cell')),
-      address: s(joinAddr()),
-      product: s(first('product','productName','item','sku','product_title')),
-      description: s(first('description','message','details','notes','comment','request')),
+      createdAt: tsToMs(firstNonEmpty(d,['createdAt','submittedAt','timestamp','created','created_on','created_at'])),
+      name: String(name || '').trim(),
+      company: String(toStr(company)).trim(),
+      email: String(toStr(email)).toLowerCase().trim(),
+      phone: String(toStr(phone)).trim(),
+      address: String(toStr(address)).trim(),
+      product: String(toStr(product)).trim(),
+      description: String(toStr(description)).trim(),
       raw: d
     };
   }
@@ -2423,15 +2409,78 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
   console.log('rows:', __leads.filtered.length, 'pageSize:', __leads.pageSize);
 }
 
+    function get(d, path) {
+    try { return path.split('.').reduce((o,k)=> (o && o[k] !== undefined ? o[k] : null), d) ?? null; }
+    catch { return null; }
+  }
+
+  function firstNonEmpty(d, paths) {
+    for (const p of paths) {
+      const v = get(d, p);
+      if (v != null && String(toStr(v)).trim() !== '') return v;
+    }
+    return null;
+  }
+  function pickName(d) {
+    const nm = get(d, 'name');
+    if (nm && typeof nm === 'object') {
+      const full = get(nm, 'full');
+      if (full) return full;
+      const joined = [get(nm,'first'), get(nm,'last')].filter(Boolean).join(' ').trim();
+      if (joined) return joined;
+    }
+    const joined = [firstNonEmpty(d,['firstName','givenName','first','fname']),
+                    firstNonEmpty(d,['lastName','surname','last','lname'])]
+                  .map(toStr).filter(Boolean).join(' ').trim();
+    return firstNonEmpty(d,['name','fullName','contactName']) || joined || '';
+  }
+  function pickPhone(d) {
+    return firstNonEmpty(d, ['companyPhone','phone','telephone','tel','mobile','cell']);
+  }
+  function pickProduct(d) {
+    return firstNonEmpty(d, [
+      'product','productName','item',
+      'material','materialName','requestedProduct',
+      'title','product_title','sku'
+    ]);
+  }
+  function pickDescription(d) {
+    // If you truly want additionalInfo to go under *address* instead, move 'additionalInfo'
+    // into pickAddress() and remove it here.
+    return firstNonEmpty(d, ['description','additionalInfo','message','details','notes','comment','request']);
+  }
+
+
+function pickAddress(d) {
+  // 1) direct string address
+  const str = firstNonEmpty(d, ['companyAddress','address']);
+  if (str && typeof str === 'string') return str;
+
+  // 2) object-ish address (companyAddress/address may be an object)
+  const obj = (typeof str === 'object' && str) || null;
+
+  const line1   = firstNonEmpty(obj || d, ['line1','address1','street1','street','shipTo.line1']);
+  const line2   = firstNonEmpty(obj || d, ['line2','address2','street2','shipTo.line2']);
+  const city    = firstNonEmpty(obj || d, ['city','shipTo.city']);
+  const state   = firstNonEmpty(obj || d, ['state','province','shipTo.state','shipTo.province']);
+  const postal  = firstNonEmpty(obj || d, ['zip','postal','postalCode','shipTo.zip','shipTo.postal']);
+  const country = firstNonEmpty(obj || d, ['country','shipTo.country']);
+
+  const parts = [line1,line2,city,state,postal,country].map(toStr).filter(Boolean);
+  return parts.join(', ');
+}
+
 
 function toStr(v) {
   if (v == null) return '';
-  if (Array.isArray(v)) return v.join(' ');
+  if (Array.isArray(v)) return v.filter(Boolean).join(', ');
   if (typeof v === 'object') {
-    // try common shapes, otherwise stringify without crashing search
-    const { firstName, lastName, name, title } = v;
-    const guess = [firstName, lastName, name, title].filter(Boolean).join(' ');
-    return guess || String(v);
+    const nm = [v.full, v.name, v.title, [v.firstName||v.first, v.lastName||v.last].filter(Boolean).join(' ')].find(Boolean);
+    const addr = [v.line1||v.address1||v.street1, v.line2||v.address2||v.street2, v.city, v.state||v.province, v.zip||v.postal, v.country]
+      .filter(Boolean).join(', ');
+    const nice = nm || addr;
+    if (nice) return String(nice);
+    try { return JSON.stringify(v); } catch { return String(v); }
   }
   return String(v);
 }
