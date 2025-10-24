@@ -2389,6 +2389,7 @@ async function loadAndShowSampleModal({ db, uid, sampleId }) {
     lset(l$('[data-f="name"]', row),        lead.name || '-');
     lset(l$('[data-f="company"]', row),     lead.company || '-');
     lset(l$('[data-f="email"]', row),       lead.email || '-');
+    lset(l$('[data-f="created"]', row),     lFmtDate(lead.createdAt) || '-'); // NEW
     lset(l$('[data-f="phone"]', row),       lFmtPhone(lead.phone) || '-');
     lset(l$('[data-f="address"]', row),     lead.address || '-');
     lset(l$('[data-f="product"]', row),     lead.product || '-');
