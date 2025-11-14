@@ -2418,6 +2418,7 @@ function initTradeshowAdminUI(ctx) {
       const companyEl   = row.querySelector('[data-ts-admin-company]');
       const emailEl     = row.querySelector('[data-ts-admin-email]');
       const phoneEl     = row.querySelector('[data-ts-admin-phone]');
+      const addrs     = row.querySelector('[data-ts-admin-addrs]');
       const cityStateEl = row.querySelector('[data-ts-admin-citystate]');
       const roleEl      = row.querySelector('[data-ts-admin-role]');
       const stageEl     = row.querySelector('[data-ts-admin-stage]');
@@ -2435,6 +2436,8 @@ function initTradeshowAdminUI(ctx) {
 
       if (emailEl) emailEl.textContent = ld.email || '';
       if (phoneEl) phoneEl.textContent = ld.phone || '';
+
+      if (addrs) addrs.textContent = ld.address || '';
 
       if (cityStateEl) {
         const cs = (ld.city && ld.state) ? `${ld.city}, ${ld.state}` : (ld.city || ld.state || '');
