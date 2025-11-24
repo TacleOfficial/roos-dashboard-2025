@@ -21,7 +21,7 @@ window.EXPO_DATA = {
         id: 'acoustical',
         name: 'Acoustical Solutions',
         collections: [
-          'acoustical-art-concepts'
+          'acoustical-art-concepts-akupanel'
           // add other architectural brands here later
         ]
       },
@@ -1365,6 +1365,90 @@ window.EXPO_DATA = {
     {
       src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bd8c3cd69ec2c64cb7e_659c1f69bc11593fca9a6a5c_Walnut.png',
       caption: 'Duchateau Ligne Walnut'
+    }
+  ]
+},
+
+// Paste this inside your brands object:
+'acoustical-art-concepts-akupanel': {
+  id: 'acoustical-art-concepts-akupanel',
+  categoryId: 'acoustical',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dc633a06f2a38d300280_acousticalartconcepts.jpg',
+
+  // brand detail
+  name: 'Acoustical Arts Akupanel',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dc633a06f2a38d300280_acousticalartconcepts.jpg',
+  description:
+    'Fifteen slats backed with a Resonance Acoustic panel and faced with a beautiful wood veneer (shown below). Now available in any high pressure laminate from Lab Designs and any phenolic backed metal laminate from Specified Metals.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: true,
+    mdf: true,
+    greenguard: false,
+    curvedProfile: true
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '23 5/8” x 94 ½”',
+    thickness: '13/16”',
+    finish: 'Smoked Oak, Brown Oak, Natural Oak, Grey Oak, Walnut, Recon Grey, Recon Maple, Smoked Oak, Brown Oak, Black Ash & Classic Oak',
+    patternDepth: 'N/A'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dc633a06f2a38d300280_acousticalartconcepts.jpg',
+      caption: 'Akupanel in Natural Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dbfed487df2253df539b_acousticalartconcepts.jpg',
+      caption: 'Akupanel in Natural Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dc05557b2e5338bf3c62_acousticalartconcepts.jpg',
+      caption: 'Akupanel in Grey Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dc0f501fe483eab53133_acousticalartconcepts.jpg',
+      caption: 'Akupanel in Natural Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dc4b501fe44fa2b533e1_acousticalartconcepts.jpg',
+      caption: 'Akupanel in Natural Oak'
     }
   ]
 }
