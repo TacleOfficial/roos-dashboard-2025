@@ -1449,6 +1449,38 @@ window.EXPO_DATA = {
     {
       src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dc4b501fe44fa2b533e1_acousticalartconcepts.jpg',
       caption: 'Akupanel in Natural Oak'
+    },
+    {
+      src: 'https://woodupp.b-cdn.net/approved/18302207650094545.jpg',
+      caption: 'Akupanel in Carolina Oak'
+    },
+    {
+      src: 'https://woodupp.b-cdn.net/approved/18230573797170914.jpg',
+      caption: 'Akupanel in Carolina Oak'
+    },
+    {
+      src: 'https://woodupp.b-cdn.net/approved/17970852662300262.jpg',
+      caption: 'Akupanel in Solid Blue'
+    },
+    {
+      src: 'https://woodupp.b-cdn.net/approved/17887435352892301.jpg',
+      caption: 'Akupanel in with Lamela Strip'
+    },
+    {
+      src: 'https://woodupp.b-cdn.net/approved/17951696231608643.jpg',
+      caption: 'Akupanel in Clay color'
+    },
+    {
+      src: 'https://woodupp.b-cdn.net/approved/18216166528210764.jpg',
+      caption: 'Akupanel in Walnut Oak'
+    },
+    {
+      src: 'https://woodupp.b-cdn.net/approved/17922766226356583.jpg',
+      caption: 'Akupanel in Smoked Oak with LED Accessory'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/688d1871dd1f0879e065f33b_Akupanel%20Curve%20Profile%20Install%202.png',
+      caption: 'Akupanel with curved profile'
     }
   ]
 }
