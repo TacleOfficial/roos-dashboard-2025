@@ -21,7 +21,7 @@ window.EXPO_DATA = {
         id: 'acoustical',
         name: 'Acoustical Solutions',
         collections: [
-          'acoustical-art-concepts-akupanel'
+          'akupanel'
           // add other architectural brands here later
         ]
       },
@@ -1370,8 +1370,8 @@ window.EXPO_DATA = {
 },
 
 // Paste this inside your brands object:
-'acoustical-art-concepts-akupanel': {
-  id: 'acoustical-art-concepts-akupanel',
+'akupanel': {
+  id: 'akupanel',
   categoryId: 'acoustical',
 
   // tile image used on the collections screen
