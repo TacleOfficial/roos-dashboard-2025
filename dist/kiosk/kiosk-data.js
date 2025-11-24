@@ -1,5 +1,4 @@
-<script>
-  window.EXPO_DATA = {
+window.EXPO_DATA = {
     categories: {
       architectural: {
         id: 'architectural',
@@ -1179,4 +1178,3 @@
         }
     }
 };
-</script>
