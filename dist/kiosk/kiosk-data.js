@@ -10,6 +10,7 @@ window.EXPO_DATA = {
           'duchateau-inceptiv',
           'duchateau-moderne',
           'duchateau-pictura',
+          'duchateau-ligne',
           'duchateau-celestio-legno',
           'interlam-carved-screens',
           'interlam-metal-screens'
@@ -1287,6 +1288,85 @@ window.EXPO_DATA = {
           caption: 'Interlam Metal Screens'
         }
       ]
+    },
+
+    'duchateau-ligne': {
+  id: 'duchateau-ligne',
+  categoryId: 'architectural',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bbe580444b714624876_65986ee3e5c7559a6c210445_2.png',
+
+  // brand detail
+  name: 'Duchateau Ligne',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bbe580444b714624876_65986ee3e5c7559a6c210445_2.png',
+  description:
+    'Born from the simple beauty where line and air meet. Where the harmony of illumination and darkness enhance nature’s expression through exceptional design. Light and shadow move in a silent rhythm across the openings between wood pieces, where the endless pursuit of perfection has discovered just as much to be told in the negative space. Intentional in its entirety, the material is finished on all sides, creating a presence that can be felt in spaces intimate or grand—a refined architecture that fills its surrounding spaces with life.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: true,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '14-3/4″ x 119″',
+    thickness: '1-5/8”',
+    finish: 'Oak, Walnut',
+    patternDepth: 'Varies by pattern'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'z-clips',
+      label: 'Z-Clips',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d868d996d4d0b794853_hd-azclip-2%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
     }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bbe580444b714624876_65986ee3e5c7559a6c210445_2.png',
+      caption: 'Duchateau Ligne Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bc334dc7d4c07d6a404_659c1f677729c1d1dfbc3e7c_Oak%20(7).png',
+      caption: 'Duchateau Ligne Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bcedbb712458b4e9094_65986ee3c0cbaca10f49db25_4.png',
+      caption: 'Duchateau Ligne Walnut'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bd8c3cd69ec2c64cb7e_659c1f69bc11593fca9a6a5c_Walnut.png',
+      caption: 'Duchateau Ligne Walnut'
+    }
+  ]
+}
     }
 };
