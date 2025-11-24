@@ -11,7 +11,8 @@ window.EXPO_DATA = {
           'duchateau-moderne',
           'duchateau-pictura',
           'duchateau-celestio-legno',
-          'interlam-carved-screens'
+          'interlam-carved-screens',
+          'interlam-metal-screens'
           // add other architectural brands here later
         ]
       },
@@ -1175,6 +1176,117 @@ window.EXPO_DATA = {
             caption: 'Interlam Carved Screens'
             }
         ]
+      },
+      // Paste this inside your brands object:
+    'interlam-metal-screens': {
+      id: 'interlam-metal-screens',
+      categoryId: 'architectural',
+
+      // tile image used on the collections screen
+      tileImage: 'https://firebasestorage.googleapis.com/v0/b/roos-international-invent-2025.firebasestorage.app/o/media%2FInterlam%2F1761926786020-Mitsch%20Design%20-%20Metal%20Screens%20ILMS026.jpg?alt=media&token=b7c85918-671e-400a-81de-9123d23d6456',
+
+      // brand detail
+      name: 'Interlam Metal Screens',
+      heroImage: 'https://firebasestorage.googleapis.com/v0/b/roos-international-invent-2025.firebasestorage.app/o/media%2FInterlam%2F1761926786020-Mitsch%20Design%20-%20Metal%20Screens%20ILMS026.jpg?alt=media&token=b7c85918-671e-400a-81de-9123d23d6456',
+      description:
+        'Metal Screens are made of mild steel that is laser cut with precision to create some very unique patterns. Once cut, a powder coat is applied to each screen to give the panel a clean, finished look. Our screens will be available in 10 gauge (.1406” or about 3mm) thickness and in standard 4x8’s or possibly 4x10’s. Each screen will weigh anywhere from 30 lbs up to 120 lbs depending on the design. Custom screens are definitely a possibility, however, we ask that you have an autocad file available and exact sizes needed in order for us to get a price. Pricing custom screens may take up to 4-5 business days.',
+
+      // Which feature icons to light up
+      features: {
+        fireRating: true,
+        soundproofing: false,
+        mdf: true,
+        greenguard: false,
+        curvedProfile: false
+      },
+
+      // Specs: use null to hide a row, string to show it
+      specs: {
+        dimensions: '4\' x 8\'',
+        thickness: 'Varies by pattern from 3/4" to 3"',
+        finish: 'Factory Sanded and Primed, Painted, Custom',
+        patternDepth: 'Varies by pattern'
+      },
+
+      // Installation methods to show in the “Installation Methods” card
+      installMethods: [
+        {
+          id: 'z-clips',
+          label: 'Z-Clips',
+          icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d868d996d4d0b794853_hd-azclip-2%201.png'
+        },
+        {
+          id: 'direct-screw',
+          label: 'Direct Screw Attachment',
+          icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
         }
+      ],
+
+      // Applications toggles the green/grey pills
+      applications: {
+        commercial: true,
+        residential: true,
+        interior: true,
+        exterior: true
+      },
+
+      // Price card
+      pricing: {
+        startingAt: null,
+        unit: ''
+      },
+
+      // Gallery: first 4 become thumbnails; the rest feed the X+ count
+      gallery: [
+        {
+          src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/645bbe5ee39860e596da4dcb_20180308_133813-1-e1568898182302.jpg',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/645bdfa8e79709d646325cc3_SpaceAsArt-InteriorDesign_PWMG-32-1024x682.jpg',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/645bde90eaea54309c7cd36d_Terra-Gaucha-bar-1024x659.jpg',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/645bde99ee38923b2f9291c7_Terra-Gaucha-dining-screen-vignette-1024x644.jpg',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ee23d2813590c61d49baf_Terra-Gaucha-Bar-to-Dining-final-1024x631.jpg',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64b01d591cbddba223627727_www.interlam-design.jpg',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://firebasestorage.googleapis.com/v0/b/roos-international-invent-2025.firebasestorage.app/o/media%2FInterlam%2F1761926786728-Screenshot_1.jpg?alt=media&token=5e683040-986f-448c-90b8-2b8008093173',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://firebasestorage.googleapis.com/v0/b/roos-international-invent-2025.firebasestorage.app/o/media%2FInterlam%2F1761926786020-Mitsch%20Design%20-%20Metal%20Screens%20ILMS026.jpg?alt=media&token=b7c85918-671e-400a-81de-9123d23d6456',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://firebasestorage.googleapis.com/v0/b/roos-international-invent-2025.firebasestorage.app/o/media%2FInterlam%2F1761926785226-img_6585951x634.jpg?alt=media&token=6c33b3f9-f038-41d2-abd8-cbc769ba488e',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://firebasestorage.googleapis.com/v0/b/roos-international-invent-2025.firebasestorage.app/o/media%2FInterlam%2F1761926784483-img_6592-crop-u254395.jpg?alt=media&token=0c6b5742-cd7f-420a-be4c-f2e405c05040',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://firebasestorage.googleapis.com/v0/b/roos-international-invent-2025.firebasestorage.app/o/media%2FInterlam%2F1761926783797-img_6590-crop-u254355.jpg?alt=media&token=a01a8007-7bcd-46fa-9c89-80a705634578',
+          caption: 'Interlam Metal Screens'
+        },
+        {
+          src: 'https://firebasestorage.googleapis.com/v0/b/roos-international-invent-2025.firebasestorage.app/o/media%2FInterlam%2F1761926772026-20160519_091906%20(1).jpg?alt=media&token=48d7e1f3-236b-4813-b581-792614197063',
+          caption: 'Interlam Metal Screens'
+        }
+      ]
+    }
     }
 };
