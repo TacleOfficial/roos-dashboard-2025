@@ -36,7 +36,11 @@ window.EXPO_DATA = {
         id: 'laminates',
         name: 'Laminates & Veneers',
         collections: [
-          'lab-designs'
+          'lab-designs',
+          'ati-decorative-laminates',
+          'barnwood',
+          'decotone-surfaces',
+          'ecodomo'
           // add other architectural brands here later
         ]
       },      
@@ -52,7 +56,7 @@ window.EXPO_DATA = {
         id: 'wallcoverings',
         name: 'Wallcoverings',
         collections: [
-          'interlam-art-diffusion'
+          'texturglas'
           // add other architectural brands here later
         ]
       },
@@ -2047,6 +2051,438 @@ window.EXPO_DATA = {
     {
       src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc33cb9c620585072a32_acousticalartconcepts.png',
       caption: 'Profile wrap close up'
+    }
+  ]
+},
+// Paste this inside your brands object:
+'lab-designs': {
+  id: 'lab-designs',
+  categoryId: 'laminates',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/65ce86c7844611f613adb20a_1.18%20Just%20Bars%20-%20Blue%20Oxygen%20Collection%202.jpg',
+
+  // brand detail
+  name: 'Lab Designs',
+  heroImage: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/65ce86c7844611f613adb20a_1.18%20Just%20Bars%20-%20Blue%20Oxygen%20Collection%202.jpg',
+  description:
+    'Lab Designs Laminates is designed to inspire, with finishes that bring your spaces to life. can be sold separately to highlight your design, premium laminates without the Premium Price, 9 collections and over 600 laminates and can be IMO certified.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: false,
+    mdf: false,
+    greenguard: true,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '48" x 96"',
+    thickness: '0.9mm',
+    finish: 'Varies by design',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/689a15d7dd2ecd8d8f9decc4_DP134.png',
+      caption: 'Lab Designs Laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/68f11a9f0451f6b5fdf761b5_2.png',
+      caption: 'Lab Designs Laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/689a15d6b71b9dd18383295c_DW093.png',
+      caption: 'Lab Designs Laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/689a297c600aca845113c1fc_WO030.png',
+      caption: 'Lab Designs Laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/689a15d5a0e90957e17fa614_DP762%20(3).png',
+      caption: 'Lab Designs Laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/65ce86c7844611f613adb20a_1.18%20Just%20Bars%20-%20Blue%20Oxygen%20Collection%202.jpg',
+      caption: 'Lab Designs Laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/689a36e88483aec1db65c0a7_SC420.png',
+      caption: 'Lab Designs Laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/689b654203db959f24ab319c_Lab%20Designs%20Eclipse%20Series.jpg',
+      caption: 'Lab Designs Laminates'
+    }
+  ]
+},
+// Paste this inside your brands object:
+'ati-decorative-laminates': {
+  id: 'ati-decorative-laminates',
+  categoryId: 'laminates',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/6759c88e8774db6d529ed7dc_65c645734734fa3a52371909_Living-Room_Ariel-Washed-Oak_MirroFlex_1100px.jpg',
+
+  // brand detail
+  name: 'ATI Decorative Laminates',
+  heroImage: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/6759c88e8774db6d529ed7dc_65c645734734fa3a52371909_Living-Room_Ariel-Washed-Oak_MirroFlex_1100px.jpg',
+  description:
+    'ATI Decorative Surfaces is a family-owned and operated manufacturing facility focused on developing innovative surfaces for the contract, hospitality, and retail markets. We strive to be a solutions provider with products and services that resolve the challenges for the A&D community. From specialized manufacturing methods to in-house CAD and graphic designers, ATI offers amazing adaptation capacity to meet and exceed our client’s needs. Our team manages your entire project from concept through completion.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: false,
+    mdf: false,
+    greenguard: true,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '48" x 96" or 48" x 120"',
+    thickness: 'Varies by design',
+    finish: 'Varies by design',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65c638d90afadaa9737d972e_MirroFlex_Japanese-Weave-Crosshatch-Silver_Modern-Office-1-p-2000.jpg',
+      caption: 'MirroFlex panels'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65d7b3dfa60c409c72742c86_Retail_NuMetal-Rose-Gold-212_1100px.jpg',
+      caption: 'NuMetal Laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65c68fbae357a4684858c988_FUS-TEX-MET_BULLETPROOF-AND-SO-IMPRESSED.jpg',
+      caption: 'Fusion Textured Metal can combine digital images to NuMetal laminates'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65e7546416fb0cdd2215fb5b_GINKGO-LUMISPLASH-SALES-COUNTER.jpg',
+      caption: 'LumiSplash allows for custom printing with Decorative Laminates that includes LED Edge Lighting'
+    }
+  ]
+},
+
+// Paste this inside your brands object:
+'barnwood': {
+  id: 'barnwood',
+  categoryId: 'laminates',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643e8e2f7e656b727129edc7_www.interlam-design.jpg',
+
+  // brand detail
+  name: 'Barnwood Veneers',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643e8e2f7e656b727129edc7_www.interlam-design.jpg',
+  description:
+    'Looking for a reclaimed wood look without the reclaimed wood price? The Barnwood real wood veneer series is a great alternative to the heft and the cost of solid pieces of reclaimed wood. Barnwood has the same texture, knots, and natural markings as the real thing because it is the real thing (just a very thin slice). Sheet size: 4\' x 8\'. Fleece backed.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: false,
+    mdf: false,
+    greenguard: true,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '48" x 96"',
+    thickness: '1mm',
+    finish: 'Varies by design, pre-sanded',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a8579d843c06fc438fec24_Smokey-Oak-3.jpg',
+      caption: 'Barnwood Veneers'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643e9c6405988e9fbccc80ad_www.interlam-design.jpg',
+      caption: 'Barnwood Veneers'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643e9c738c053731e2449bbb_www.interlam-design.jpg',
+      caption: 'Barnwood Veneers'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a8607040e6e9c6a12b5600_barnwood2-cs-1024x790.jpg',
+      caption: 'Barnwood Veneers'
+    }
+  ]
+},
+// Paste this inside your brands object:
+'decotone-surfaces': {
+  id: 'decotone-surfaces',
+  categoryId: 'laminates',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef301f91b375d89bb3e55_Torino%20TC2827.jpg',
+
+  // brand detail
+  name: 'Decotone Surfaces',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef301f91b375d89bb3e55_Torino%20TC2827.jpg',
+  description:
+    'A constant evolution of finishes, textures, colors and wood grains developed with a firm eye on market trends to offer innovative design possibilities. Decotone Surfaces features solid colors, pearlescent patterns, beautiful wood grains, artistic and traditional metal laminates. These laminates also have a high resistance to scratches, abrasions and scuffs, making it perfect for high traffic areas.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: false,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '48" x 96" or 48" x 120"',
+    thickness: '.9mm',
+    finish: 'Varies by design',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef3452a538a9658c9cfb4_Designer%20Laminates%20d-0808rw.jpg',
+      caption: 'Decotone Surfaces'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef417a6800bf3ec1ea0a1_Lamitech%20italian%20walnut%20lt-1513.jpg',
+      caption: 'Decotone Surfaces'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef54f99b6cdeb999258f0_Petrified%20Grey%20LT-3129.jpg',
+      caption: 'Decotone Surfaces'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef5515e1032cfb4776319_MET-a748%20Metallic.jpg',
+      caption: 'Decotone Surfaces'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef55228135947fed5fa9a_MET-a718%20Palm%20Leaf%20Bronz.jpg',
+      caption: 'Decotone Surfaces'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef554b0eb6311d8f53222_MET-A716.jpg',
+      caption: 'Decotone Surfaces'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643ef570dd2d9212e8394c66_D-1022HG%20Copper.jpg',
+      caption: 'Decotone Surfaces'
+    }
+  ]
+},
+
+// Paste this inside your brands object:
+'ecodomo': {
+  id: 'ecodomo',
+  categoryId: 'laminates',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/685191209ac4141b8c6c26cb_Ecodomo%20White%20Shagreen%20Stratto%20RLV.png',
+
+  // brand detail
+  name: 'Ecodomo',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/685191209ac4141b8c6c26cb_Ecodomo%20White%20Shagreen%20Stratto%20RLV.png',
+  description:
+    'Ecodomo’s Andeline Recycled Leather Veneer – RLV™ – is available in industry standard 4×8 sheet for ease of integration in manufacturing. It is also available laminated on 4mm panels – the same thickness as glass. You can design and manufacture with confidence with EcoDomo RLV™ to integrate leather on cabinet doors, furniture inserts, and vanities from commercial to residential. A vast majority value, connect with and simply love leather for their cars, personal accessories, or furniture. EcoDomo panels can also be made acoustical!',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: true,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '48" x 96"',
+    thickness: '4mm',
+    finish: 'Varies by design',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/68519135c56fb113f6502604_Modern%20Kitchen%20with%20Brass%20Accents%20Stratto%20Peel%20and%20Stick.png',
+      caption: 'Ecodomo Leather Veneers'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6851911d2f78b69ae5746d84_Ecodomo%20Pebble%20Shagreen%20Stratto%20RLV.png',
+      caption: 'Ecodomo Leather Veneers in Pebble Shagreen'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64c1391043eebc7f8589be0b_EcoDomo-LanthamWatkins-Staircase-Platform-Wide-.webp',
+      caption: 'Ecodomo can be used for flooring in commercial and residential areas of high traffic'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ac30822d61ed5ee6e5b47f_Untitled%20design%20-%202023-07-10T121905.016.png',
+      caption: 'Distinctive and unique leather belt panels, each and every time. These charming belt panels  are guaranteed eye-catchers.'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64469c3c1d3cc2cbb2acf959_EcoDomo-Leather-Belt-Drawer-Fronts_60.jpg',
+      caption: 'Distinctive and unique leather belt panels, each and every time. These charming belt panels  are guaranteed eye-catchers.'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64469c02766243d8107c06ba_IMG_0582_5812-1024x557.jpg',
+      caption: 'Distinctive and unique leather belt panels, each and every time. These charming belt panels  are guaranteed eye-catchers.'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6851906d0da4efca2594c096_Ecodomo%20Stratto%20RLV%20Shagreen.png',
+      caption: 'Stratto RLV: Peel & Stick Recycled Leather Veneers'
     }
   ]
 }
