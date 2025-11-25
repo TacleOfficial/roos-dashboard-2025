@@ -14,6 +14,7 @@ window.EXPO_DATA = {
           'duchateau-celestio-legno',
           'interlam-carved-screens',
           'interlam-metal-screens'
+  
           // add other architectural brands here later
         ]
       },
@@ -21,7 +22,13 @@ window.EXPO_DATA = {
         id: 'acoustical',
         name: 'Acoustical Solutions',
         collections: [
-          'akupanels'
+          'akupanels',
+          'akutile',
+          'akupanel-profile-wrap',
+          'duchateau-ligne-shadow',
+          'duchateau-zen',
+          'ezobord',
+          'resonance'
           // add other architectural brands here later
         ]
       },
@@ -1483,6 +1490,566 @@ window.EXPO_DATA = {
       caption: 'Akupanel with curved profile'
     }
   ]
+},
+// Paste this inside your brands object:
+'duchateau-ligne-shadow': {
+  id: 'duchateau-ligne-shadow',
+  categoryId: 'acoustical',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/660d64e8add6dd1df2ab13e0_OAK-SHADOW.webp',
+
+  // brand detail
+  name: 'Duchateau Ligne Shadow',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/660d64e8add6dd1df2ab13e0_OAK-SHADOW.webp',
+  description:
+    'Born from the simple beauty where line and air meet. Where the harmony of illumination and darkness enhance nature’s expression through exceptional design. Light and shadow move in a silent rhythm across the openings between wood pieces, where the endless pursuit of perfection has discovered just as much to be told in the negative space. Intentional in its entirety, the material is finished on all sides, creating a presence that can be felt in spaces intimate or grand—a refined architecture that fills its surrounding spaces with life.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: false,
+    soundproofing: true,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '14-3/4” x 119 ½”',
+    thickness: '1-5/8"',
+    finish: 'Sand, American Walnut',
+    patternDepth: 'N/A'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bbc28fd6204a615e2ab_65987b6c55ab821f5687c9fe_Untitled%20design%20(1).png',
+      caption: 'Duchateau Ligne with Acoustic felt'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bc56285ccbb3720322c_659c1f689df3bc1bed051e94_Walnut%20Shadow%20(3).png',
+      caption: 'Duchateau Ligne with Acoustic felt'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67ae1bcc675e2f000eff0d54_659c1f68f6dc43cf7f1a8faa_Walnut%20Shadow%20(2).png',
+      caption: 'Duchateau Ligne with Acoustic felt'
+    }
+  ]
+},
+// Paste this inside your brands object:
+'duchateau-zen': {
+  id: 'duchateau-zen',
+  categoryId: 'acoustical',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b7d170020d132cfcb6a96d_Intervals_Natural-768x576.webp',
+
+  // brand detail
+  name: 'Duchateau Zen',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b7d170020d132cfcb6a96d_Intervals_Natural-768x576.webp',
+  description:
+    'The Zen Collection offers exceptional beauty. Lacquer finished veneers express wood visuals in five colors, with a felt backing that insulates sound and deepens the contrast. Sophisticated, yet warm—acoustically sound for upscale hospitality. Scalable in size—a powerful statement accent in the home.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: true,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '15-1/8" x 108"',
+    thickness: '15/16"',
+    finish: 'Natural Oak, Raw Walnut',
+    patternDepth: 'N/A'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b7d170020d132cfcb6a96d_Intervals_Natural-768x576.webp',
+      caption: 'Duchateau Zen in Natural Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b1594ffb388c25512dc70f_Svrfaced-Intervals-Natural-Side.webp',
+      caption: 'Duchateau Zen in Natural Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b159768db4f8786eb279b7_Web-Intervals-Natural-Restaurant-1.webp',
+      caption: 'Duchateau Zen in Natural Oak'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b15a130dbd6a844128d6e5_Svrfaced-Intervals-Walnut-Side.webp',
+      caption: 'Duchateau Zen in Raw Walnut'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b15a2597166a2b15a61e22_Intervals-Raw-Walnut.webp',
+      caption: 'Duchateau Zen in Raw Walnut'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b15cb0ceab58a41e704fbd_Web-Intervals-Darkened-Walnut-Home-Theater.webp',
+      caption: 'Duchateau Zen in Raw Walnut'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/65b7d23a4a2e37bd916725ce_Intervals-Darkened-Walnut-Bedroom.webp',
+      caption: 'Duchateau Zen in Raw Walnut'
+    }
+  ]
+},
+// Paste this inside your brands object:
+'ezobord': {
+  id: 'ezobord',
+  categoryId: 'acoustical',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6453f4736d7484ab09fb8cbb_ezobord-custom-gallery6.webp',
+
+  // brand detail
+  name: 'Ezobord',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6453f4736d7484ab09fb8cbb_ezobord-custom-gallery6.webp',
+  description:
+    'The Zen Collection offers exceptional beauty. Lacquer finished veneers express wood visuals in five colors, with a felt backing that insulates sound and deepens the contrast. Sophisticated, yet warm—acoustically sound for upscale hospitality. Scalable in size—a powerful statement accent in the home.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: true,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: 'Varies by design',
+    thickness: '0.8mm',
+    finish: 'PET',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6453f591f1f236fee87d83cc_acoustical-net_01.jpg',
+      caption: 'Ezobord Acoustical Net'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64b82d24851cb53285c61f8b_amplitude_01.jpg',
+      caption: 'Ezobord Amplitude'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64b83168d7323bdde9dbbea2_ceiling-baffles_02-1.jpg',
+      caption: 'Ezobord Baffle Cloud'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ac5bab18310a88dfb13024_balsa_01.jpg',
+      caption: 'Ezobord Digital PET Acoustic Slat Panels'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ac5be9187df48f87cca4c6_WhatsApp-Image-2022-12-13-at-08.13.24.jpg',
+      caption: 'Ezobord Carved Panels'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64b835b9455979440d9899aa_ceiling-baffles_02.jpg',
+      caption: 'Ezobord Ceiling Baffles'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ac5c175f425c837ba1c2f0_ezobord-ezo-on-ezo-gallery5.webp',
+      caption: 'Ezobord Ezo on Ezo'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ac5c6f1b0ca70cb1a0da67_full-sheet_01.jpg',
+      caption: 'Ezobord Full Panels'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64b837c997c120b90d806d18_full-sheet-cloud-1.jpg',
+      caption: 'Ezobord Full Sheet Cloud'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ac5c35f167079227121312_ezobord-geo-tiles-enhanced-gallery2.webp',
+      caption: 'Ezobord Geo Tile'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ac5cdb289ad134d7c2ee61_ezobord-work-zone-design-1000-7.jpg',
+      caption: 'Ezobord Dividers and Partitions'
+    }
+  ]
+},
+
+// Paste this inside your brands object:
+'resonance': {
+  id: 'resonance',
+  categoryId: 'acoustical',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d6497320d821320f77212_acousticalartconcepts.jpg',
+
+  // brand detail
+  name: 'Resonance',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d6497320d821320f77212_acousticalartconcepts.jpg',
+  description:
+    'Resonance Panels are an ideal sound-absorbing decorative material. The raw material is 100% polyester fiber, made out of 50% recycled plastic water bottles. The composition makes it sound-absorbing, fire-resistant, insulating, moisture-proof, anti-mildew, easy cleaning, easy cutting, simple installation, and ECO friendly. These panels can be mounted using basic construction methods such as directly screwing or gluing them into the wall or using our optional accessories. A 9mm single panel weighs about 4kg or 9lbs and has a soft texture. It is an ideal material for decoration. The standard panel is formed by hot-pressing (colored) PET fiber to produce 9mm sheets of various color choices. The unique properties of this non-woven fabric give it a non-directional texture with uniform color throughout the panel. High wearing edges add to the durability of this product but remain easy to cut into any shape. Currently we have 13 standard stock colors.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: true,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: 'Varies by design, standard 4\' x 8\'',
+    thickness: '0.8mm',
+    finish: 'Black, White, Red, Yellow, Charcoal, Marble Gray, Royal Blue and more',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/67f68b58e452ab54b95e9a11_Resonance%20Art%20Colors.png',
+      caption: 'Resonance Panels available in 14 colors'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/644831bd30912e1875a379bf_acousticalartconcepts.jpg',
+      caption: 'Resonance in Royal Blue'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d6453af384d7229b3ba5e_acousticalartconcepts.jpg',
+      caption: 'Resonance Baffles'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d6476af384d51d1b3bba6_acousticalartconcepts.jpg',
+      caption: 'Resonance Embossed Panels'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d6497320d821320f77212_acousticalartconcepts.jpg',
+      caption: 'Resonance Inlay with ForesCOLOR substrate'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64af08a95adc8c7db9036722_acousticalartconcepts.jpg',
+      caption: 'Resonance One and Two allows for more than one PET overlay to create multiple designs'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d64e0f1f4a77783d6b822_acousticalartconcepts.jpg',
+      caption: 'Resonance Screens and Dividers'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d6512dc4aafd2d36f5679_acousticalartconcepts.jpg',
+      caption: 'Resonance V-Carved'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ad9f51399c725e127887a0_carved-planks-768x1024.jpg',
+      caption: 'Resonance planks can be digitally printed to mimic real wood'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ad9f3b1a1082b685e0e4fe_Untitled-design-28-1-1024x320.png',
+      caption: 'Resonance Digital Planks installed a restaurant'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64ad9f00da5417d65daa159c_AAC-dig-wood-A-rotated.jpg',
+      caption: 'Resonance Digital Planks installed in another restaurant'
+    }
+  ]
+},
+// Paste this inside your brands object:
+'akutile': {
+  id: 'akutile',
+  categoryId: 'acoustical',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d5f8700ed0eb634408ec9_acousticalartconcepts.png',
+
+  // brand detail
+  name: 'Akutile',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/643d5f8700ed0eb634408ec9_acousticalartconcepts.png',
+  description:
+    'Slats backed with a Resonance Acoustic panel and faced with a beautiful wood veneer (shown below) or any high pressure laminate from Lab Designs Laminates, or any phenolic backed metal laminate from Specified Metals. ​The same veneer that is on the face of the Akupanel can be sold separately to highlight your design',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: true,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '23 5/8” x 23 5/8”',
+    thickness: '13/16”',
+    finish: 'Varies by design',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64481f78b3a168af662e6e42_acousticalartconcepts.png',
+      caption: 'Akutile installed on a wall'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64481f9be4a0fa43cf7fc235_acousticalartconcepts.png',
+      caption: 'Akutile installed on a wall'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64481f9d81d46922c4f99b95_acousticalartconcepts.png',
+      caption: 'Akutile installed in the ceiling'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64481fa0a0243d6f85bf75b1_acousticalartconcepts.png',
+      caption: 'Akutile installed in the ceiling'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64481fa7a0d34613f74a7b11_acousticalartconcepts.png',
+      caption: 'Akutile installed in the ceiling'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6448224d5ce790378ae3292c_Untitled%20design%20(74).png',
+      caption: 'Akutile installed in the ceiling'
+    }
+  ]
+},
+// Paste this inside your brands object:
+'akupanel-profile-wrap': {
+  id: 'akupanel-profile-wrap',
+  categoryId: 'acoustical',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc33cb9c620585072a32_acousticalartconcepts.png',
+
+  // brand detail
+  name: 'Akupanel Profile Wrap',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc33cb9c620585072a32_acousticalartconcepts.png',
+  description:
+    'Slats backed with a Resonance Acoustic panel and faced with a beautiful wood veneer (shown below) or any high pressure laminate from Lab Designs Laminates, or any phenolic backed metal laminate from Specified Metals. ​The same veneer that is on the face of the Akupanel can be sold separately to highlight your design',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: true,
+    mdf: true,
+    greenguard: false,
+    curvedProfile: true
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '23 5/8” x 23 5/8”',
+    thickness: '13/16”',
+    finish: 'Varies by design',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    },
+    {
+      id: 'direct-screw',
+      label: 'Direct Screw Attachment',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6447dc53e1b85e1b48d383dc_acousticalartconcepts.jpg',
+      caption: 'Profile wrap on a wall'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc2650d16565dff00881_acousticalartconcepts.png',
+      caption: 'Profile wrap close up'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc19c4af5d1aee52ed00_acousticalartconcepts.png',
+      caption: 'Profile wrap close up'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc2bd6f2b7af32272651_acousticalartconcepts.png',
+      caption: 'Profile wrap close up'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc2eb2faf2b595e750e1_acousticalartconcepts.png',
+      caption: 'Profile wrap close up'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc3150d16565dff018d7_acousticalartconcepts.png',
+      caption: 'Profile wrap close up'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6475fc33cb9c620585072a32_acousticalartconcepts.png',
+      caption: 'Profile wrap close up'
+    }
+  ]
 }
+
     }
 };
