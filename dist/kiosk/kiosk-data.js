@@ -64,7 +64,7 @@ window.EXPO_DATA = {
         id: 'digital',
         name: 'Digital Products',
         collections: [
-          'Resonance Art'
+          'specified-metals-infusion'
           // add other architectural brands here later
         ]
       }
@@ -2483,6 +2483,240 @@ window.EXPO_DATA = {
     {
       src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6851906d0da4efca2594c096_Ecodomo%20Stratto%20RLV%20Shagreen.png',
       caption: 'Stratto RLV: Peel & Stick Recycled Leather Veneers'
+    }
+  ]
+},
+
+// Paste this inside your brands object:
+'transonyx': {
+  id: 'transonyx',
+  categoryId: 'specialty',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64468082c3c338ea2e687a67_IMG_4124_2048x-p-2000.webp',
+
+  // brand detail
+  name: 'Transonyx',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64467c0ef1a12c2b49ca47b8_IMG_4127_1296x.webp',
+  description:
+    'TransOnyx is engineered to bring the modern design to the next level of luxury. Made from special resins and finely-ground natural minerals, they represent a great low cost alternative to real translucent stone in color and texture. TransOnyx adds the magic of light to every application, ensuring an astonishing effect, a game changer in interior design. These translucent stone panels are perfect for Backlit applications, Wallcovering, Reception desks and bars, Artwork, Partitions/Privacy Panels, Furniture, Store Fixtures, Signage and more.l accessories, or furniture. EcoDomo panels can also be made acoustical!',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: false,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '48" x 96"',
+    thickness: '6mm, 8mm and 12mm',
+    finish: 'Varies by design',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'construction-adhesive',
+      label: 'Construction Adhesive',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d86fd168ec4433c74a8_Liquid-Nails%201.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64467c0ef1a12c2b49ca47b8_IMG_4127_1296x.webp',
+      caption: 'Transonyx'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64468087dca65279fccbea3a_IMG_4131_1512x.webp',
+      caption: 'Transonyx'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64468087dca65279fccbea3a_IMG_4131_1512x.webp',
+      caption: 'Transonyx'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6446808979b7b2d132ce0612_IMG_4148_1512x.webp',
+      caption: 'Transonyx'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/6446808c6fb624e14d14921b_IMG_4155_1296x.webp',
+      caption: 'Transonyx'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64468091de094b49a2b267d1_IMG_4163_1296x.webp',
+      caption: 'Transonyx'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64467ef8e3676aba6fd153f6_2_4d42ac3e-d64a-4569-a350-16fc9b933958_1296x.webp',
+      caption: 'Transonyx'
+    }
+  ]
+},
+
+// Paste this inside your brands object:
+'texturglas': {
+  id: 'texturglas',
+  categoryId: 'wallcoverings',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/64ba959ae3fe0c7e4221c9f3_Untitled%20design%20-%202023-07-21T102513.156.png',
+
+  // brand detail
+  name: 'Transonyx',
+  heroImage: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/64ba959ae3fe0c7e4221c9f3_Untitled%20design%20-%202023-07-21T102513.156.png',
+  description:
+    'The Texturglas® Architectural Wall Finish System is perfect for new construction or renovation. The Collection provides texture, color, and performance to resurface problem walls without replacing them, and reinforces regular drywall for a more durable surface. The finish coating is the key to the system, allowing the specifier to control the performance. It is designed to be painted in the latest fashion-forward paint colors and finishes. Choose from latex, acrylic, or epoxy paints, to exciting new metallic, pearlescent, multicolor, glaze finishes, and even faux finishes that will bring new life to your wall.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: false,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '39" x 54 yard bolts, 39" x 32 yard bolts',
+    thickness: 'Varies by design',
+    finish: 'Glass Textile Textured Finish',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/68470386b2ca7752ce959c31_wallcovering%20install.png',
+      caption: 'Architectural Wall Finish System'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/64ba959ae3fe0c7e4221c9f3_Untitled%20design%20-%202023-07-21T102513.156.png',
+      caption: 'Designer Collection'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/6512fda41f8794aa4916bb22_GV250%20background%20drywall-p-2000.png',
+      caption: 'Wall Restoration System'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/684897eef4e86c12f2ecded0_23e96a8a-bb54-4445-a16e-54753199fb69.png',
+      caption: 'Sound Control by Acoustiver'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/6849bf02bcfb59b461ab3baa_Wallcovering%20Digital%20Texturglas%20BathVar2.png',
+      caption: 'Custom Digital Printing'
+    }
+  ]
+},
+// Paste this inside your brands object:
+'specified-metals-infusion': {
+  id: 'specified-metals-infusion',
+  categoryId: 'digital',
+
+  // tile image used on the collections screen
+  tileImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a6fd455504bebc192e7a6f_Specified%20Metals-p-2000.jpg',
+
+  // brand detail
+  name: 'Specified Metals Digital Infusion',
+  heroImage: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a6fd455504bebc192e7a6f_Specified%20Metals-p-2000.jpg',
+  description:
+    'Digital Infusion is a high-definition digital print process that provides ultimate image clarity and vibrancy. Images are infused into specialty coated metal surfaces to provide the most durable print medium available.‍ ‍',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: false,
+    soundproofing: false,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '48 7/16” x 96 7/16”',
+    thickness: '0.030 inch (20 gauge)',
+    finish: 'Glossy, or UV Matte',
+    patternDepth: 'Varies by design'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: false
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a6fc93637bec2d02f2bd55_barndoor-kitchen_d600.jpg',
+      caption: 'Custom Digital Printing'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a6fd8b7322094004765927_specifiedmetals.jpg',
+      caption: 'Custom Digital Printing'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a6fd8fa9377bc82e9a798d_specifiedmetals.jpg',
+      caption: 'Custom Digital Printing'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a6fd925b3b9f26b97f8323_specifiedmetals.jpg',
+      caption: 'Custom Digital Printing'
+    },
+    {
+      src: 'https://cdn.prod.website-files.com/6384ed8d758eccd2bf818356/64a6fd9ae2744339660729c5_specifiedmetals.jpg',
+      caption: 'Custom Digital Printing'
     }
   ]
 }
