@@ -1,6 +1,23 @@
   // ---------- SINGLE auth listener (everything available to signed-in users) ----------
  // portal/dashboard-main.js
 (function () {
+
+  function loaderStart() {
+    if (window.portalLoader && typeof window.portalLoader.start === 'function') {
+      window.portalLoader.start();
+    }
+  }
+  function loaderBump(delta) {
+    if (window.portalLoader && typeof window.portalLoader.bump === 'function') {
+      window.portalLoader.bump(delta);
+    }
+  }
+  function loaderFinish() {
+    if (window.portalLoader && typeof window.portalLoader.finish === 'function') {
+      window.portalLoader.finish();
+    }
+  }
+
   const {
     waitForFirebaseReady,
     show,
@@ -29,6 +46,9 @@
       profile: null,
     };
 
+    loaderStart();
+
+
     try {
       await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     } catch (_) { /* ignore */ }
@@ -49,6 +69,9 @@
         hide(elAuthed);
         show(elNoAccess);
         updateVisibility({ authed: false, rolesSet: null });
+
+        loaderFinish();
+
         return;
       }
 
@@ -65,6 +88,9 @@
         if (isAdmin) window.portalCtx.roles.add('admin');
         window.portalCtx.admin = isAdmin;
       } catch (_) { /* ignore */ }
+
+      loaderBump(10);
+
 
       // ---- MODULE HOOKS ----
       // Leads admin (admin-only UI)
@@ -94,6 +120,8 @@
 
       // Lookups for vendors/categories/collections/colors
       await preloadLookups(db);
+      loaderBump(20);
+
 
       // Products filters + pager
       if (window.RoosDash.wireProductsFiltersOnce) {
@@ -102,13 +130,17 @@
       if (window.RoosDash.initProductsPager) {
         await window.RoosDash.initProductsPager(db);
       }
+      loaderBump(20);
+
 
       // Jobs & samples tables
       await loadJobsForUser(db, user.uid);
+      loaderBump(20);
 
       if (window.RoosDash.loadSamplesForUser) {
         await window.RoosDash.loadSamplesForUser(db, user.uid);
       }
+      loaderBump(20);
 
       // Row click → modal wiring
       if (window.RoosDash.wireSampleRowClicksOnce) {
@@ -129,6 +161,8 @@
       if (prForm && typeof prForm.__loadProfile === 'function') {
         prForm.__loadProfile(user.uid);
       }
+      loaderFinish();
+
     });
   });
 })();
