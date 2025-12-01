@@ -41,12 +41,14 @@ function setProgress(percent) {
 function start() {
   initEls();
   if (!state.backdrop) return;
-  state.done = false;
 
   // ⬇️ make sure it’s visible again
-  // (optional) reset opacity/visibility if your CSS uses them
   state.backdrop.classList.remove('is-hidden');
-  state.backdrop.style.display = 'flex'; // or 'block' depending on your layout
+  // (optional) reset opacity/visibility if your CSS uses them
+  // state.backdrop.style.opacity = '';
+  // state.backdrop.style.visibility = '';
+
+  state.done = false;
   setProgress(5);
 
   // Fake, smooth progress up to ~80%
@@ -87,12 +89,6 @@ function start() {
     window.setTimeout(() => {
       if (state.backdrop) {
         state.backdrop.classList.add('is-hidden');
-        // 👇 AFTER FADE, HIDE IT COMPLETELY
-        window.setTimeout(() => {
-          if (state.backdrop) {
-            state.backdrop.style.display = 'none';
-          }
-        }, 200); // match your CSS transition duration
       }
     }, 150);
   }
