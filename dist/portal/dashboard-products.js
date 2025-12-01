@@ -8,7 +8,8 @@
     fallbackFor,
     mapIdToName,
     mapIdsToNames,
-    mdSetRichText,     // ← add this
+    mdSetRichText,
+    __lookups,      
 
   } = window.RoosDash;
 
