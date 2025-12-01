@@ -201,7 +201,6 @@
   Object.assign(window.RoosDash, {
     toDate,
     fmt,
-    qs,
     DEFAULT_EMPTY,
     isEmptyValue,
     fallbackFor,
