@@ -196,6 +196,43 @@
       })
     );
   }
+
+   // Safe rich text (no innerHTML)
+  function mdSetRichText(el, html) {
+    if (!el) return;                 // ← add this line
+    while (el.firstChild) el.removeChild(el.firstChild);
+    if (!html || typeof html !== 'string') return;
+
+    const allowed = new Set(['P', 'A', 'STRONG', 'EM', 'UL', 'OL', 'LI', 'BR', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN']);
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    function cloneSafe(node, parent) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        parent.appendChild(document.createTextNode(node.nodeValue));
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+      const tag = node.tagName;
+      if (!allowed.has(tag)) {
+        parent.appendChild(document.createTextNode(node.textContent || ''));
+        return;
+      }
+
+      const out = document.createElement(tag.toLowerCase());
+      if (tag === 'A') {
+        const href = node.getAttribute('href') || '#';
+        out.setAttribute('href', href);
+        out.setAttribute('target', '_blank');
+        out.setAttribute('rel', 'noopener');
+      }
+      Array.from(node.childNodes).forEach(ch => cloneSafe(ch, out));
+      parent.appendChild(out);
+    }
+
+    Array.from(doc.body.childNodes).forEach(n => cloneSafe(n, el));
+  }
+
   // ---------- /TABLE HELPERS ----------
 
   // Export everything that other modules need
@@ -215,6 +252,7 @@
     setMaterialsCell,
     fetchMaterialsForJob,
     loadJobsForUser,
+    mdSetRichText,            // ← add this line
   });
 
 })();

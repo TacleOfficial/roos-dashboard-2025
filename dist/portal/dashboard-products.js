@@ -8,8 +8,10 @@
     fallbackFor,
     mapIdToName,
     mapIdsToNames,
+    mdSetRichText,     // ← add this
+
   } = window.RoosDash;
-  
+
     // ---------- PRODUCTS TABLE HELPERS ----------
   function formatProductCell(prop, raw) {
     if (raw == null) return '';
