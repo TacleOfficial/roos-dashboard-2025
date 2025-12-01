@@ -1,4 +1,6 @@
 (function () {
+    const Roos = window.RoosDash || {};
+   const { qs, qsa } = Roos;
     // ---------- TABLE HELPERS (no innerHTML) ----------
   function toDate(val) {
     if (!val) return null;
