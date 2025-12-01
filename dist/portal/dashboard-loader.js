@@ -23,13 +23,20 @@
     return x;
   }
 
-  function setProgress(percent) {
-    initEls();
-    state.value = clamp01(percent / 100) * 100;
-    if (state.bar) {
-      state.bar.style.width = state.value + '%';
-    }
+function setProgress(percent) {
+  initEls();
+  state.value = clamp01(percent / 100) * 100;
+
+  if (state.bar) {
+    state.bar.style.width = state.value + '%';
   }
+
+  if (state.label) {
+    const v = Math.round(state.value);
+    state.label.textContent = v + '%';   // no innerHTML
+  }
+}
+
 
 function start() {
   initEls();
