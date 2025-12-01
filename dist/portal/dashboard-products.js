@@ -1,8 +1,15 @@
 (function () {
-    const {
-        qs, qsa,
-
-    } = window.RoosDash;
+  const {
+    qs,
+    qsa,
+    fmt,
+    DEFAULT_EMPTY,
+    isEmptyValue,
+    fallbackFor,
+    mapIdToName,
+    mapIdsToNames,
+  } = window.RoosDash;
+  
     // ---------- PRODUCTS TABLE HELPERS ----------
   function formatProductCell(prop, raw) {
     if (raw == null) return '';
