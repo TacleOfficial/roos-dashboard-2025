@@ -183,15 +183,24 @@ function initUI() {
     return;
   }
 
-  // Toggle chat panel open/close
-  toggleBtn.addEventListener("click", () => {
+  let chatInitialized = false;
+
+  toggleBtn.addEventListener("click", async () => {
     const isOpen = panel.style.display === "block";
+
+    // FIRST TIME CHAT IS OPENED → initialize session
+    if (!chatInitialized) {
+      await initChatSession();
+      chatInitialized = true;
+    }
+
+    // Toggle panel
     panel.style.display = isOpen ? "none" : "block";
 
     if (!isOpen) {
       // reset unread
       sessionRef.update({ unreadByUser: 0 })
-      .catch(err => console.error("Unread reset failed:", err));
+        .catch(err => console.error("Unread reset failed:", err));
     }
   });
 
@@ -230,7 +239,6 @@ function initUI() {
     window._chatAuth = auth;
     window._chatStorage = storage;
 
-    await initChatSession();
     initUI();
   }
 
