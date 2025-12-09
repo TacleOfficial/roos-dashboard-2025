@@ -1,3 +1,13 @@
+console.log("🔥 chat-widget.js: script executing…");
+
+document.addEventListener("readystatechange", () => {
+  console.log("🔥 readystatechange:", document.readyState);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🔥 DOMContentLoaded FIRED");
+});
+
 (function () {
 
   // ----------------------------
