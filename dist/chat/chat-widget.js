@@ -36,31 +36,45 @@ async function initChatSession() {
 
   // Restore existing session
   if (sessionId) {
-    console.log("🔥 Restoring existing chat session:", sessionId);
+    console.log("🔥 Restoring session:", sessionId);
     sessionRef = db.collection("chat_sessions").doc(sessionId);
+
+    // Check if doc actually exists
+    const snap = await sessionRef.get();
+    if (!snap.exists) {
+      console.warn("⚠️ Session doc does NOT exist — creating fresh one.");
+      localStorage.removeItem("roosChatSession");
+      return await initChatSession(); // restart logic
+    }
+
+    console.log("🔥 Session exists:", snap.data());
     listenForMessages();
     return;
   }
 
   // Create new session
-  const newRef = await db.collection("chat_sessions").add({
-    userId: auth.currentUser?.uid || null,
-    startedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    isClosed: false,
-    assignedTo: null,
-    unreadByUser: 0,
-    unreadByManager: 1,
-    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
+  try {
+    const newRef = await db.collection("chat_sessions").add({
+      userId: auth.currentUser?.uid || null,
+      startedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      isClosed: false,
+      assignedTo: null,
+      unreadByUser: 0,
+      unreadByManager: 1,
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
 
-  sessionId = newRef.id;
-  sessionRef = newRef;
+    console.log("🔥 Created new chat session:", newRef.id);
 
-  localStorage.setItem("roosChatSession", sessionId);
+    sessionId = newRef.id;
+    sessionRef = newRef;
 
-  console.log("🔥 Created new chat session:", sessionId);
+    localStorage.setItem("roosChatSession", sessionId);
 
-  listenForMessages();
+    listenForMessages();
+  } catch (err) {
+    console.error("🔥 ERROR creating new session:", err);
+  }
 }
 
 
