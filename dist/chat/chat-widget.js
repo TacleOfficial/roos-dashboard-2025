@@ -29,33 +29,39 @@ document.addEventListener("DOMContentLoaded", () => {
   // ----------------------------
   // Load or create chat session
   // ----------------------------
-  async function initChatSession() {
-    sessionId = localStorage.getItem("roosChatSession");
+async function initChatSession() {
+  console.log("🔥 initChatSession() called");
 
-    if (sessionId) {
-      sessionRef = db.collection("chat_sessions").doc(sessionId);
-      listenForMessages();
-      return;
-    }
+  sessionId = localStorage.getItem("roosChatSession");
 
-    // Create new anonymous session
-    const newRef = await db.collection("chat_sessions").add({
-      userId: auth.currentUser?.uid || null,
-      startedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      isClosed: false,
-      assignedTo: null,
-      unreadByUser: 0,
-      unreadByManager: 1,
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    sessionId = newRef.id;
-    sessionRef = newRef;
-
-    localStorage.setItem("roosChatSession", sessionId);
-
+  if (sessionId) {
+    console.log("🔥 Existing session found:", sessionId);
+    sessionRef = db.collection("chat_sessions").doc(sessionId);
     listenForMessages();
+    return;
   }
+
+  console.log("🔥 Creating new chat session…");
+
+  const newRef = await db.collection("chat_sessions").add({
+    userId: auth.currentUser?.uid || null,
+    startedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    isClosed: false,
+    assignedTo: null,
+    unreadByUser: 0,
+    unreadByManager: 1,
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  sessionId = newRef.id;
+  sessionRef = newRef;
+
+  console.log("🔥 New session created:", sessionId);
+
+  localStorage.setItem("roosChatSession", sessionId);
+
+  listenForMessages();
+}
 
 
   // ----------------------------
@@ -127,35 +133,56 @@ document.addEventListener("DOMContentLoaded", () => {
   // ----------------------------
   // UI bindings
   // ----------------------------
-  function initUI() {
-    const toggle  = qs('[data-chat="toggle"]');
-    const panel   = qs('[data-chat="panel"]');
-    const input   = qs('[data-chat="input"]');
-    const sendBtn = qs('[data-chat="send"]');
+function initUI() {
+  console.log("🔥 initUI() called");
 
-    if (!toggle || !panel) return;
+  const widget  = qs('[data-chat="widget"]');
+  const toggle  = qs('[data-chat="toggle"]');
+  const panel   = qs('[data-chat="panel"]');
+  const input   = qs('[data-chat="input"]');
+  const sendBtn = qs('[data-chat="send"]');
 
-    toggle.addEventListener("click", () => {
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-
-      // Mark all read when opened
-      if (panel.style.display === "block") {
-        sessionRef.update({ unreadByUser: 0 });
-      }
-    });
-
-    sendBtn.addEventListener("click", () => {
-      sendMessage(input.value);
-      input.value = "";
-    });
-
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        sendMessage(input.value);
-        input.value = "";
-      }
-    });
+  if (!widget) {
+    console.warn("⚠️ Chat widget HTML not found on page.");
+    return;
   }
+
+  if (!toggle || !panel) {
+    console.warn("⚠️ Chat toggle/panel missing.");
+    return;
+  }
+
+  // Toggle chat open/close
+  toggle.addEventListener("click", () => {
+    const isOpen = panel.style.display === "block";
+    panel.style.display = isOpen ? "none" : "block";
+
+    if (!isOpen) {
+      console.log("🔥 Chat panel opened");
+      sessionRef.update({ unreadByUser: 0 }).catch(() => {});
+    }
+  });
+
+  // Send button
+  sendBtn.addEventListener("click", () => {
+    const text = input.value.trim();
+    if (!text) return;
+
+    sendMessage(text);
+    input.value = "";
+  });
+
+  // Enter key sends message
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const text = input.value.trim();
+      if (!text) return;
+      sendMessage(text);
+      input.value = "";
+    }
+  });
+}
+
 
 
   // ----------------------------
