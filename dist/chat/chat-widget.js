@@ -161,9 +161,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // ----------------------------
   // Initialize everything
   // ----------------------------
-  document.addEventListener("DOMContentLoaded", async () => {
+  async function startChatWidget() {
+    console.log("🔥 Chat Widget INIT");
     await initChatSession();
     initUI();
-  });
+  }
+
+  /**
+   * Handle case where script loads AFTER DOMContentLoaded
+   */
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startChatWidget);
+  } else {
+    // DOM already loaded → run immediately
+    startChatWidget();
+  }
+
 
 })();
