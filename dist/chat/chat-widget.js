@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let sessionRef = null;
   let unsubMessages = null;
 
+  // ⭐ GLOBAL STORE FOR PANEL ELEMENT
+  let chatPanelEl = null;
+
 function waitForFirebase() {
   return new Promise((resolve) => {
     const check = () => {
@@ -35,7 +38,6 @@ function waitForFirebase() {
   });
 }
 
-
   // ----------------------------
   // Load or create chat session
   // ----------------------------
@@ -44,9 +46,7 @@ async function initChatSession() {
 
   sessionId = localStorage.getItem("roosChatSession");
 
-  // --------------------------------------------
-  // 1. If we have a stored sessionId, validate it
-  // --------------------------------------------
+  // 1. Restore session if valid
   if (sessionId) {
     console.log("🔥 Attempting to restore session:", sessionId);
 
@@ -60,14 +60,11 @@ async function initChatSession() {
       return;
     }
 
-    // Session is invalid → remove and fall through to "create new"
-    console.warn("⚠️ Invalid sessionId in localStorage. Removing and creating a new one.");
+    console.warn("⚠️ Invalid stored sessionId → removing");
     localStorage.removeItem("roosChatSession");
   }
 
-  // --------------------------------------------
-  // 2. Create a brand NEW session safely
-  // --------------------------------------------
+  // 2. Create new session
   try {
     const newRef = await window._chatDB.collection("chat_sessions").add({
       userId: window._chatAuth.currentUser?.uid || null,
@@ -92,9 +89,6 @@ async function initChatSession() {
   }
 }
 
-
-
-
   // ----------------------------
   // Real-time message listener
   // ----------------------------
@@ -109,8 +103,12 @@ function listenForMessages() {
         const msg = change.doc.data();
         renderMessage(msg);
 
-        // If manager sent the message and panel is closed → increment unreadByUser
-        if (msg.senderType === "manager" && panel.style.display !== "block") {
+        // ⭐ FIXED: Use chatPanelEl instead of undefined panel
+        if (
+          msg.senderType === "manager" &&
+          chatPanelEl &&
+          chatPanelEl.style.display !== "block"
+        ) {
           sessionRef.update({
             unreadByUser: firebase.firestore.FieldValue.increment(1)
           }).catch(err => console.error("Unread increment failed:", err));
@@ -119,8 +117,6 @@ function listenForMessages() {
     });
   });
 }
-
-
 
   // ----------------------------
   // Render message bubble
@@ -150,7 +146,6 @@ function renderMessage(msg) {
   list.scrollTop = list.scrollHeight;
 }
 
-
   // ----------------------------
   // Send message
   // ----------------------------
@@ -171,9 +166,6 @@ async function sendMessage(text) {
   });
 }
 
-
-
-
   // ----------------------------
   // UI bindings
   // ----------------------------
@@ -191,52 +183,51 @@ function initUI() {
     return;
   }
 
+  // ⭐ STORE THE PANEL ELEMENT GLOBALLY
+  chatPanelEl = panel;
+
   let chatInitialized = false;
 
   toggleBtn.addEventListener("click", async () => {
     const isOpen = panel.style.display === "block";
 
-    // FIRST TIME CHAT IS OPENED → initialize session
+    // FIRST TIME OPEN → Create session
     if (!chatInitialized) {
       await initChatSession();
       chatInitialized = true;
+      watchUnread(); // ⭐ start unread watcher only after session exists
     }
 
     // Toggle panel
     panel.style.display = isOpen ? "none" : "block";
 
     if (!isOpen) {
-      // reset unread
       sessionRef.update({ unreadByUser: 0 })
         .catch(err => console.error("Unread reset failed:", err));
     }
-
-    // 🔵 Live unread counter (user side)
-    function watchUnread() {
-      if (!sessionRef) return;
-
-      sessionRef.onSnapshot((snap) => {
-        const data = snap.data();
-        if (!data) return;
-
-        const badge = qs('[data-chat="unread-badge"]');
-        if (!badge) return;
-
-        const unread = data.unreadByUser || 0;
-
-        if (unread > 0 && panel.style.display !== "block") {
-          badge.textContent = unread;
-          badge.style.display = "inline-block";
-        } else {
-          badge.style.display = "none";
-        }
-      });
-    }
-
-    watchUnread();
-
-
   });
+
+  // 🔵 Live unread counter
+  function watchUnread() {
+    if (!sessionRef) return;
+
+    sessionRef.onSnapshot((snap) => {
+      const data = snap.data();
+      if (!data) return;
+
+      const badge = qs('[data-chat="unread-badge"]');
+      if (!badge) return;
+
+      const unread = data.unreadByUser || 0;
+
+      if (unread > 0 && panel.style.display !== "block") {
+        badge.textContent = unread;
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+    });
+  }
 
   // Sending a message
   sendBtn.addEventListener("click", () => {
@@ -254,36 +245,28 @@ function initUI() {
   });
 }
 
-
-
-
-
   // ----------------------------
   // Initialize everything
   // ----------------------------
-  async function startChatWidget() {
-    console.log("🔥 Chat Widget INIT");
+async function startChatWidget() {
+  console.log("🔥 Chat Widget INIT");
 
-      // Firebase already initialized globally
-    const db = window.firebase.firestore();
-    const auth = window.firebase.auth();
-    const storage = window.firebase.storage();
+  const db = window.firebase.firestore();
+  const auth = window.firebase.auth();
+  const storage = window.firebase.storage();
 
-      // Save globally so other functions can use them
-    window._chatDB = db;
-    window._chatAuth = auth;
-    window._chatStorage = storage;
+  window._chatDB = db;
+  window._chatAuth = auth;
+  window._chatStorage = storage;
 
-    initUI();
-  }
+  initUI();
+}
 
-  /**
-   * Handle case where script loads AFTER DOMContentLoaded
-   */
+// Boot after DOM ready
 async function bootChatWidget() {
   console.log("🔥 bootChatWidget called");
-  await waitForFirebase();      // ⬅️ waits for Firebase to load
-  await startChatWidget();      // ⬅️ then initializes chat
+  await waitForFirebase();
+  await startChatWidget();
 }
 
 if (document.readyState === "loading") {
@@ -292,7 +275,9 @@ if (document.readyState === "loading") {
   bootChatWidget();
 }
 
-// ------- TEMPORARY TESTING TOOL (Remove later) -------
+//
+// TEMPORARY MANAGER MESSAGE TEST TOOL
+//
 window.sendManagerTestMessage = async function (sessionId, text = "Hello from manager") {
   const ref = window._chatDB.collection("chat_sessions").doc(sessionId);
 
@@ -311,6 +296,5 @@ window.sendManagerTestMessage = async function (sessionId, text = "Hello from ma
 
   console.log("🔥 Manager test message sent to:", sessionId);
 };
-
 
 })();
