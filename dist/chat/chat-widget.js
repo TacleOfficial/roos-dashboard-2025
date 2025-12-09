@@ -44,25 +44,30 @@ async function initChatSession() {
 
   sessionId = localStorage.getItem("roosChatSession");
 
-  // Restore existing session
+  // --------------------------------------------
+  // 1. If we have a stored sessionId, validate it
+  // --------------------------------------------
   if (sessionId) {
-    console.log("🔥 Restoring session:", sessionId);
-    sessionRef = window._chatDB.collection("chat_sessions").doc(sessionId);
+    console.log("🔥 Attempting to restore session:", sessionId);
 
-    // Check if doc actually exists
-    const snap = await sessionRef.get();
-    if (!snap.exists) {
-      console.warn("⚠️ Session doc does NOT exist — creating fresh one.");
-      localStorage.removeItem("roosChatSession");
-      return await initChatSession(); // restart logic
+    const sessionDocRef = window._chatDB.collection("chat_sessions").doc(sessionId);
+    const snap = await sessionDocRef.get();
+
+    if (snap.exists) {
+      console.log("🔥 Valid session restored:", sessionId, snap.data());
+      sessionRef = sessionDocRef;
+      listenForMessages();
+      return;
     }
 
-    console.log("🔥 Session exists:", snap.data());
-    listenForMessages();
-    return;
+    // Session is invalid → remove and fall through to "create new"
+    console.warn("⚠️ Invalid sessionId in localStorage. Removing and creating a new one.");
+    localStorage.removeItem("roosChatSession");
   }
 
-  // Create new session
+  // --------------------------------------------
+  // 2. Create a brand NEW session safely
+  // --------------------------------------------
   try {
     const newRef = await window._chatDB.collection("chat_sessions").add({
       userId: window._chatAuth.currentUser?.uid || null,
@@ -86,6 +91,7 @@ async function initChatSession() {
     console.error("🔥 ERROR creating new session:", err);
   }
 }
+
 
 
 
