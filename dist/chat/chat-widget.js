@@ -111,23 +111,30 @@ async function initChatSession() {
   // ----------------------------
   // Send message
   // ----------------------------
-  async function sendMessage(text) {
-    if (!text.trim()) return;
-    if (!sessionRef) return;
-
-    await sessionRef.collection("messages").add({
-      senderType: "user",
-      senderId: auth.currentUser?.uid || "anon",
-      text,
-      attachments: [],
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    await sessionRef.update({
-      unreadByManager: firebase.firestore.FieldValue.increment(1),
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+ async function sendMessage(text) {
+  if (!sessionRef) {
+    console.log("❌ No sessionRef — cannot send message.");
+    return;
   }
+
+  console.log("📨 Sending message:", text);
+
+  await sessionRef.collection("messages").add({
+    senderType: "user",
+    senderId: auth.currentUser?.uid || "anon",
+    text,
+    attachments: [],
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  await sessionRef.update({
+    unreadByManager: firebase.firestore.FieldValue.increment(1),
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  console.log("📨 Message stored in Firestore");
+}
+
 
 
   // ----------------------------
