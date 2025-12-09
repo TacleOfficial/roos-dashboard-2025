@@ -91,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tryAttach();
   }
+  window._roosWatchUnread = watchUnread;
 
 
   // =============================================================
@@ -113,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
         listenForMessages();
 
         // ⭐ ALWAYS start unread watcher after restore
-        setTimeout(() => watchUnread(), 300);
+        setTimeout(() => window._roosWatchUnread(), 300);
         return;
       }
 
@@ -141,8 +142,10 @@ document.addEventListener("DOMContentLoaded", () => {
     listenForMessages();
 
     // ⭐ ALWAYS start unread watcher after new session
-    setTimeout(() => watchUnread(), 300);
+    setTimeout(() => window._roosWatchUnread(), 300);
   }
+
+  window._roosInitChatSession = initChatSession;
 
 
   // =============================================================
