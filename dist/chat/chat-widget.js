@@ -56,8 +56,9 @@ async function initChatSession() {
     if (snap.exists) {
       console.log("🔥 Valid session restored:", sessionId, snap.data());
       sessionRef = sessionDocRef;
+
       listenForMessages();
-      watchUnread();   // ⭐ FIX — Watch unread messages immediately
+      watchUnread();   // ⭐ FIX — Always start unread watcher immediately
       return;
     }
 
@@ -85,10 +86,12 @@ async function initChatSession() {
     localStorage.setItem("roosChatSession", sessionId);
 
     listenForMessages();
+    watchUnread();  // ⭐ FIX — Start watcher immediately after fresh session
   } catch (err) {
     console.error("🔥 ERROR creating new session:", err);
   }
 }
+
 
   // ----------------------------
   // Real-time message listener
@@ -196,7 +199,6 @@ function initUI() {
     if (!chatInitialized) {
       await initChatSession();
       chatInitialized = true;
-      watchUnread(); // ⭐ start unread watcher only after session exists
     }
 
     // Toggle panel
