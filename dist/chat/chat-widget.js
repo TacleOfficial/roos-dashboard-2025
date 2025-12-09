@@ -106,7 +106,15 @@ function listenForMessages() {
   msgs.onSnapshot((snap) => {
     snap.docChanges().forEach((change) => {
       if (change.type === "added") {
-        renderMessage(change.doc.data());
+        const msg = change.doc.data();
+        renderMessage(msg);
+
+        // If manager sent the message and panel is closed → increment unreadByUser
+        if (msg.senderType === "manager" && panel.style.display !== "block") {
+          sessionRef.update({
+            unreadByUser: firebase.firestore.FieldValue.increment(1)
+          }).catch(err => console.error("Unread increment failed:", err));
+        }
       }
     });
   });
@@ -202,6 +210,32 @@ function initUI() {
       sessionRef.update({ unreadByUser: 0 })
         .catch(err => console.error("Unread reset failed:", err));
     }
+
+    // 🔵 Live unread counter (user side)
+    function watchUnread() {
+      if (!sessionRef) return;
+
+      sessionRef.onSnapshot((snap) => {
+        const data = snap.data();
+        if (!data) return;
+
+        const badge = qs('[data-chat="unread-badge"]');
+        if (!badge) return;
+
+        const unread = data.unreadByUser || 0;
+
+        if (unread > 0 && panel.style.display !== "block") {
+          badge.textContent = unread;
+          badge.style.display = "inline-block";
+        } else {
+          badge.style.display = "none";
+        }
+      });
+    }
+
+    watchUnread();
+
+
   });
 
   // Sending a message
@@ -219,6 +253,7 @@ function initUI() {
     }
   });
 }
+
 
 
 
