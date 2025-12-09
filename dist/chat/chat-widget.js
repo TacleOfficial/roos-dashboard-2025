@@ -292,6 +292,25 @@ if (document.readyState === "loading") {
   bootChatWidget();
 }
 
+// ------- TEMPORARY TESTING TOOL (Remove later) -------
+window.sendManagerTestMessage = async function (sessionId, text = "Hello from manager") {
+  const ref = window._chatDB.collection("chat_sessions").doc(sessionId);
+
+  await ref.collection("messages").add({
+    senderType: "manager",
+    senderId: "test-manager",
+    text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    attachments: []
+  });
+
+  await ref.update({
+    unreadByUser: firebase.firestore.FieldValue.increment(1),
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  console.log("🔥 Manager test message sent to:", sessionId);
+};
 
 
 })();
