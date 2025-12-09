@@ -57,6 +57,7 @@ async function initChatSession() {
       console.log("🔥 Valid session restored:", sessionId, snap.data());
       sessionRef = sessionDocRef;
       listenForMessages();
+      watchUnread();   // ⭐ FIX — Watch unread messages immediately
       return;
     }
 
