@@ -16,11 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const qs  = (s, sc) => (sc || document).querySelector(s);
   const qsa = (s, sc) => (sc || document).querySelectorAll(s);
 
-  // Firebase already initialized globally
-  const db = window.firebase.firestore();
-  const auth = window.firebase.auth();
-  const storage = window.firebase.storage();
-
   let sessionId = null;
   let sessionRef = null;
   let unsubMessages = null;
@@ -52,7 +47,7 @@ async function initChatSession() {
   // Restore existing session
   if (sessionId) {
     console.log("🔥 Restoring session:", sessionId);
-    sessionRef = db.collection("chat_sessions").doc(sessionId);
+    sessionRef = window._chatDB.collection("chat_sessions").doc(sessionId);
 
     // Check if doc actually exists
     const snap = await sessionRef.get();
@@ -69,8 +64,8 @@ async function initChatSession() {
 
   // Create new session
   try {
-    const newRef = await db.collection("chat_sessions").add({
-      userId: auth.currentUser?.uid || null,
+    const newRef = await window._chatDB.collection("chat_sessions").add({
+      userId: window._chatAuth.currentUser?.uid || null,
       startedAt: firebase.firestore.FieldValue.serverTimestamp(),
       isClosed: false,
       assignedTo: null,
@@ -150,7 +145,7 @@ async function sendMessage(text) {
 
   await sessionRef.collection("messages").add({
     senderType: "user",
-    senderId: auth.currentUser?.uid || "anon",
+    senderId: window._chatAuth.currentUser?.uid || "anon",
     text,
     attachments: [],
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -218,6 +213,17 @@ function initUI() {
   // ----------------------------
   async function startChatWidget() {
     console.log("🔥 Chat Widget INIT");
+
+      // Firebase already initialized globally
+    const db = window.firebase.firestore();
+    const auth = window.firebase.auth();
+    const storage = window.firebase.storage();
+
+      // Save globally so other functions can use them
+    window._chatDB = db;
+    window._chatAuth = auth;
+    window._chatStorage = storage;
+
     await initChatSession();
     initUI();
   }
