@@ -34,15 +34,15 @@ async function initChatSession() {
 
   sessionId = localStorage.getItem("roosChatSession");
 
+  // Restore existing session
   if (sessionId) {
-    console.log("🔥 Existing session found:", sessionId);
+    console.log("🔥 Restoring existing chat session:", sessionId);
     sessionRef = db.collection("chat_sessions").doc(sessionId);
     listenForMessages();
     return;
   }
 
-  console.log("🔥 Creating new chat session…");
-
+  // Create new session
   const newRef = await db.collection("chat_sessions").add({
     userId: auth.currentUser?.uid || null,
     startedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -56,68 +56,68 @@ async function initChatSession() {
   sessionId = newRef.id;
   sessionRef = newRef;
 
-  console.log("🔥 New session created:", sessionId);
-
   localStorage.setItem("roosChatSession", sessionId);
+
+  console.log("🔥 Created new chat session:", sessionId);
 
   listenForMessages();
 }
 
 
+
   // ----------------------------
   // Real-time message listener
   // ----------------------------
-  function listenForMessages() {
-    const msgRef = sessionRef.collection("messages").orderBy("timestamp");
+function listenForMessages() {
+  console.log("🔥 Listening for messages...");
 
-    unsubMessages = msgRef.onSnapshot((snap) => {
-      snap.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          renderMessage(change.doc.data());
-        }
-      });
+  const msgs = sessionRef.collection("messages").orderBy("timestamp");
+
+  msgs.onSnapshot((snap) => {
+    snap.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        renderMessage(change.doc.data());
+      }
     });
-  }
+  });
+}
+
 
 
   // ----------------------------
   // Render message bubble
   // ----------------------------
-  function renderMessage(msg) {
-    const list = qs('[data-chat="messages"]');
-    if (!list) return;
+function renderMessage(msg) {
+  const list = qs('[data-chat="messages"]');
+  if (!list) return;
 
-    const bubble = document.createElement("div");
-    bubble.setAttribute("data-chat", msg.senderType === "user" ? "bubble-user" : "bubble-manager");
+  const bubble = document.createElement("div");
+  bubble.setAttribute(
+    "data-chat",
+    msg.senderType === "user" ? "bubble-user" : "bubble-manager"
+  );
 
-    // Text node
-    const text = document.createElement("div");
-    text.textContent = msg.text;
-    bubble.appendChild(text);
+  const text = document.createElement("div");
+  text.textContent = msg.text;
+  bubble.appendChild(text);
 
-    // Timestamp
-    if (msg.timestamp) {
-      const t = document.createElement("span");
-      t.setAttribute("data-chat", "timestamp");
-      t.textContent = new Date(msg.timestamp.toDate()).toLocaleTimeString();
-      bubble.appendChild(t);
-    }
-
-    list.appendChild(bubble);
-    list.scrollTop = list.scrollHeight;
+  if (msg.timestamp) {
+    const t = document.createElement("span");
+    t.setAttribute("data-chat", "timestamp");
+    t.textContent = new Date(msg.timestamp.toDate()).toLocaleTimeString();
+    bubble.appendChild(t);
   }
+
+  list.appendChild(bubble);
+  list.scrollTop = list.scrollHeight;
+}
 
 
   // ----------------------------
   // Send message
   // ----------------------------
- async function sendMessage(text) {
-  if (!sessionRef) {
-    console.log("❌ No sessionRef — cannot send message.");
-    return;
-  }
-
-  console.log("📨 Sending message:", text);
+async function sendMessage(text) {
+  console.log("🔥 Sending message:", text);
 
   await sessionRef.collection("messages").add({
     senderType: "user",
@@ -131,9 +131,8 @@ async function initChatSession() {
     unreadByManager: firebase.firestore.FieldValue.increment(1),
     lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-
-  console.log("📨 Message stored in Firestore");
 }
+
 
 
 
@@ -143,52 +142,45 @@ async function initChatSession() {
 function initUI() {
   console.log("🔥 initUI() called");
 
-  const widget  = qs('[data-chat="widget"]');
-  const toggle  = qs('[data-chat="toggle"]');
-  const panel   = qs('[data-chat="panel"]');
-  const input   = qs('[data-chat="input"]');
+  const widget = qs('[data-chat="widget"]');
+  const toggleBtn = qs('[data-chat="toggle"]');
+  const panel = qs('[data-chat="panel"]');
+  const input = qs('[data-chat="input"]');
   const sendBtn = qs('[data-chat="send"]');
 
-  if (!widget) {
-    console.warn("⚠️ Chat widget HTML not found on page.");
+  if (!widget || !toggleBtn || !panel || !input || !sendBtn) {
+    console.warn("⚠️ Chat UI elements missing — check HTML structure.");
     return;
   }
 
-  if (!toggle || !panel) {
-    console.warn("⚠️ Chat toggle/panel missing.");
-    return;
-  }
-
-  // Toggle chat open/close
-  toggle.addEventListener("click", () => {
+  // Toggle chat panel open/close
+  toggleBtn.addEventListener("click", () => {
     const isOpen = panel.style.display === "block";
     panel.style.display = isOpen ? "none" : "block";
 
     if (!isOpen) {
-      console.log("🔥 Chat panel opened");
-      sessionRef.update({ unreadByUser: 0 }).catch(() => {});
+      // reset unread
+      sessionRef.update({ unreadByUser: 0 })
+      .catch(err => console.error("Unread reset failed:", err));
     }
   });
 
-  // Send button
+  // Sending a message
   sendBtn.addEventListener("click", () => {
-    const text = input.value.trim();
-    if (!text) return;
-
-    sendMessage(text);
-    input.value = "";
+    if (input.value.trim()) {
+      sendMessage(input.value.trim());
+      input.value = "";
+    }
   });
 
-  // Enter key sends message
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      const text = input.value.trim();
-      if (!text) return;
-      sendMessage(text);
+    if (e.key === "Enter" && input.value.trim()) {
+      sendMessage(input.value.trim());
       input.value = "";
     }
   });
 }
+
 
 
 
