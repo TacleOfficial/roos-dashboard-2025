@@ -25,6 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
   let sessionRef = null;
   let unsubMessages = null;
 
+function waitForFirebase() {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (window.firebase && window.firebase.apps && window.firebase.apps.length > 0) {
+        console.log("🔥 Firebase is ready");
+        resolve();
+      } else {
+        console.warn("⏳ Waiting for Firebase...");
+        setTimeout(check, 50);
+      }
+    };
+    check();
+  });
+}
+
 
   // ----------------------------
   // Load or create chat session
@@ -210,12 +225,18 @@ function initUI() {
   /**
    * Handle case where script loads AFTER DOMContentLoaded
    */
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", startChatWidget);
-  } else {
-    // DOM already loaded → run immediately
-    startChatWidget();
-  }
+async function bootChatWidget() {
+  console.log("🔥 bootChatWidget called");
+  await waitForFirebase();      // ⬅️ waits for Firebase to load
+  await startChatWidget();      // ⬅️ then initializes chat
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootChatWidget);
+} else {
+  bootChatWidget();
+}
+
 
 
 })();
