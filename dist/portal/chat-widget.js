@@ -1,3 +1,5 @@
+console.log("chat-widget.js LOADED");
+
 (function () {
 
   // ----------------------------
@@ -154,6 +156,7 @@
   document.addEventListener("DOMContentLoaded", async () => {
     await initChatSession();
     initUI();
+    console.log("Chat Widget DOM Ready");
   });
 
 })();
