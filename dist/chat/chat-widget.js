@@ -46,51 +46,45 @@ async function initChatSession() {
 
   sessionId = localStorage.getItem("roosChatSession");
 
-  // 1. Restore session if valid
+  // 1. Try restoring
   if (sessionId) {
-    console.log("🔥 Attempting to restore session:", sessionId);
-
     const sessionDocRef = window._chatDB.collection("chat_sessions").doc(sessionId);
     const snap = await sessionDocRef.get();
 
     if (snap.exists) {
-      console.log("🔥 Valid session restored:", sessionId, snap.data());
+      console.log("🔥 Restored existing session:", sessionId);
       sessionRef = sessionDocRef;
 
       listenForMessages();
-      watchUnread();   // ⭐ FIX — Always start unread watcher immediately
+      setTimeout(() => watchUnread(), 200); // ⭐ ensure DOM exists
       return;
     }
 
-    console.warn("⚠️ Invalid stored sessionId → removing");
+    console.warn("⚠️ Stored session invalid — removing");
     localStorage.removeItem("roosChatSession");
   }
 
-  // 2. Create new session
-  try {
-    const newRef = await window._chatDB.collection("chat_sessions").add({
-      userId: window._chatAuth.currentUser?.uid || null,
-      startedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      isClosed: false,
-      assignedTo: null,
-      unreadByUser: 0,
-      unreadByManager: 1,
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+  // 2. Create brand new session
+  const newRef = await window._chatDB.collection("chat_sessions").add({
+    userId: window._chatAuth.currentUser?.uid || null,
+    startedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    isClosed: false,
+    assignedTo: null,
+    unreadByUser: 0,
+    unreadByManager: 1,
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
 
-    console.log("🔥 Created new chat session:", newRef.id);
+  console.log("🔥 Created new session:", newRef.id);
 
-    sessionId = newRef.id;
-    sessionRef = newRef;
+  sessionId = newRef.id;
+  sessionRef = newRef;
+  localStorage.setItem("roosChatSession", sessionId);
 
-    localStorage.setItem("roosChatSession", sessionId);
-
-    listenForMessages();
-    watchUnread();  // ⭐ FIX — Start watcher immediately after fresh session
-  } catch (err) {
-    console.error("🔥 ERROR creating new session:", err);
-  }
+  listenForMessages();
+  setTimeout(() => watchUnread(), 200);  // ⭐ ensure DOM exists
 }
+
 
 
   // ----------------------------
@@ -213,40 +207,6 @@ toggleBtn.addEventListener("click", async () => {
     }
   });
 
-  // 🔵 Live unread counter
-  function watchUnread() {
-    if (!sessionRef) {
-      console.log("❌ watchUnread aborted: no sessionRef");
-      return;
-    }
-
-    console.log("🔵 watchUnread started…");
-
-    sessionRef.onSnapshot((snap) => {
-      const data = snap.data();
-      console.log("📡 Session snapshot:", data);
-
-      if (!data) return;
-
-      const badge = qs('[data-chat="unread-badge"]');
-      console.log("🔍 Badge element:", badge);
-      
-      if (!badge) return;
-
-      const unread = data.unreadByUser || 0;
-      console.log("📨 unreadByUser =", unread);
-
-      if (unread > 0 && panel.style.display !== "block") {
-        console.log("👁 Showing badge!");
-        badge.textContent = unread;
-        badge.style.display = "inline-block";
-      } else {
-        console.log("🙈 Hiding badge");
-        badge.style.display = "none";
-      }
-    });
-  }
-
   // Sending a message
   sendBtn.addEventListener("click", () => {
     if (input.value.trim()) {
@@ -263,10 +223,45 @@ toggleBtn.addEventListener("click", async () => {
   });
 }
 
-  // ----------------------------
+function watchUnread() {
+  if (!sessionRef) {
+    console.log("❌ watchUnread aborted: no sessionRef");
+    return;
+  }
+
+  console.log("🔵 watchUnread started…");
+
+  sessionRef.onSnapshot((snap) => {
+    const data = snap.data();
+    console.log("📡 Session snapshot:", data);
+
+    if (!data) return;
+
+    const badge = qs('[data-chat="unread-badge"]');
+    console.log("🔍 Badge element:", badge);
+
+    if (!badge) return;
+
+    const unread = data.unreadByUser || 0;
+    console.log("📨 unreadByUser =", unread);
+
+    if (unread > 0 && chatPanelEl && chatPanelEl.style.display !== "block") {
+      console.log("👁 Showing badge!");
+      badge.textContent = unread;
+      badge.style.display = "inline-block";
+    } else {
+      console.log("🙈 Hiding badge");
+      badge.style.display = "none";
+    }
+  });
+}
+
+
+// ----------------------------
   // Initialize everything
   // ----------------------------
-async function startChatWidget() {
+
+  async function startChatWidget() {
   console.log("🔥 Chat Widget INIT");
 
   const db = window.firebase.firestore();
