@@ -97,53 +97,80 @@ document.addEventListener("DOMContentLoaded", () => {
   // =============================================================
   // Load or create chat session — auto starts unread watcher
   // =============================================================
-  async function initChatSession() {
-    console.log("🔥 initChatSession() called");
+async function initChatSession(options = {}) {
+  const restoreOnly = options.restoreOnly || false;
 
-    sessionId = localStorage.getItem("roosChatSession");
+  console.log("🔥 initChatSession() called — restoreOnly =", restoreOnly);
 
-    // 1. Try restoring
-    if (sessionId) {
-      const sessionDocRef = window._chatDB.collection("chat_sessions").doc(sessionId);
-      const snap = await sessionDocRef.get();
+  sessionId = localStorage.getItem("roosChatSession");
 
-      if (snap.exists) {
-        console.log("🔥 Restored existing session:", sessionId);
-        sessionRef = sessionDocRef;
+  // --------------------------------------------
+  // RESTORE-ONLY MODE: do NOT create a new session
+  // --------------------------------------------
+  if (restoreOnly && sessionId) {
+    console.log("🔄 restoreOnly: attempting to restore existing session", sessionId);
 
-        listenForMessages();
+    const ref = window._chatDB.collection("chat_sessions").doc(sessionId);
+    const snap = await ref.get();
 
-        // ⭐ ALWAYS start unread watcher after restore
-        setTimeout(() => window._roosWatchUnread(), 300);
-        return;
-      }
+    if (snap.exists) {
+      console.log("✅ restoreOnly: session restored", snap.data());
+      sessionRef = ref;
 
-      console.warn("⚠️ Stored session invalid — removing");
-      localStorage.removeItem("roosChatSession");
+      listenForMessages();
+      setTimeout(() => window._roosWatchUnread(), 300);
+      return;
     }
 
-    // 2. Create brand new session
-    const newRef = await window._chatDB.collection("chat_sessions").add({
-      userId: window._chatAuth.currentUser?.uid || null,
-      startedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      isClosed: false,
-      assignedTo: null,
-      unreadByUser: 0,
-      unreadByManager: 1,
-      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-
-    console.log("🔥 Created new session:", newRef.id);
-
-    sessionId = newRef.id;
-    sessionRef = newRef;
-    localStorage.setItem("roosChatSession", sessionId);
-
-    listenForMessages();
-
-    // ⭐ ALWAYS start unread watcher after new session
-    setTimeout(() => window._roosWatchUnread(), 300);
+    console.warn("⚠️ restoreOnly: stored session invalid. Doing nothing.");
+    return;
   }
+
+  // --------------------------------------------
+  // NORMAL PATH (user clicked chat)
+  // --------------------------------------------
+  if (sessionId) {
+    const ref = window._chatDB.collection("chat_sessions").doc(sessionId);
+    const snap = await ref.get();
+
+    if (snap.exists) {
+      console.log("🔥 Restored existing session:", sessionId);
+      sessionRef = ref;
+
+      listenForMessages();
+      setTimeout(() => window._roosWatchUnread(), 300);
+      return;
+    }
+
+    console.warn("⚠️ Stored session invalid — removing");
+    localStorage.removeItem("roosChatSession");
+  }
+
+  // --------------------------------------------
+  // CREATE NEW SESSION ONLY WHEN USER OPENS CHAT
+  // --------------------------------------------
+  if (restoreOnly) return; // fail-safe
+
+  const newRef = await window._chatDB.collection("chat_sessions").add({
+    userId: window._chatAuth.currentUser?.uid || null,
+    startedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    isClosed: false,
+    assignedTo: null,
+    unreadByUser: 0,
+    unreadByManager: 1,
+    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+
+  console.log("🔥 Created new session:", newRef.id);
+
+  sessionId = newRef.id;
+  sessionRef = newRef;
+  localStorage.setItem("roosChatSession", sessionId);
+
+  listenForMessages();
+  setTimeout(() => window._roosWatchUnread(), 300);
+}
+
 
   window._roosInitChatSession = initChatSession;
 
@@ -293,6 +320,18 @@ document.addEventListener("DOMContentLoaded", () => {
     window._chatStorage = storage;
 
     initUI();
+        // -------------------------------------------------
+    // RETURNING USER: Restore session silently on load
+    // -------------------------------------------------
+    const existingSession = localStorage.getItem("roosChatSession");
+
+    if (existingSession) {
+      console.log("🔄 Silent session restore for returning user...");
+
+      // Call initChatSession but DO NOT auto-create new sessions
+      window._roosInitChatSession({ restoreOnly: true });
+    }
+
   }
 
   async function bootChatWidget() {
