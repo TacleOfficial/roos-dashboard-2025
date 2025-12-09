@@ -209,21 +209,33 @@ function initUI() {
 
   // 🔵 Live unread counter
   function watchUnread() {
-    if (!sessionRef) return;
+    if (!sessionRef) {
+      console.log("❌ watchUnread aborted: no sessionRef");
+      return;
+    }
+
+    console.log("🔵 watchUnread started…");
 
     sessionRef.onSnapshot((snap) => {
       const data = snap.data();
+      console.log("📡 Session snapshot:", data);
+
       if (!data) return;
 
       const badge = qs('[data-chat="unread-badge"]');
+      console.log("🔍 Badge element:", badge);
+      
       if (!badge) return;
 
       const unread = data.unreadByUser || 0;
+      console.log("📨 unreadByUser =", unread);
 
       if (unread > 0 && panel.style.display !== "block") {
+        console.log("👁 Showing badge!");
         badge.textContent = unread;
         badge.style.display = "inline-block";
       } else {
+        console.log("🙈 Hiding badge");
         badge.style.display = "none";
       }
     });
