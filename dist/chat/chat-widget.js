@@ -190,16 +190,19 @@ function initUI() {
   // ⭐ STORE THE PANEL ELEMENT GLOBALLY
   chatPanelEl = panel;
 
-  let chatInitialized = false;
+let chatInitialized = false;
 
-  toggleBtn.addEventListener("click", async () => {
-    const isOpen = panel.style.display === "block";
+toggleBtn.addEventListener("click", async () => {
+  const isOpen = panel.style.display === "block";
 
-    // FIRST TIME OPEN → Create session
-    if (!chatInitialized) {
-      await initChatSession();
-      chatInitialized = true;
-    }
+  if (!chatInitialized) {
+    await initChatSession();
+    chatInitialized = true;
+
+    // ⭐ UI NOW EXISTS → START WATCHER
+    watchUnread();
+  }
+
 
     // Toggle panel
     panel.style.display = isOpen ? "none" : "block";
