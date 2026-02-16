@@ -1,0 +1,46 @@
+{
+  "categories": {
+    "architectural": {
+      "id": "architectural",
+      "name": "Architectural Panels & Screens",
+      "collections": [
+        "interlam-art-diffusion"
+      ]
+    }
+  },
+  "brands": {
+    "interlam-art-diffusion": {
+      "id": "interlam-art-diffusion",
+      "categoryId": "architectural",
+      "tileImage": "",
+      "name": "Interlam Art Diffusion",
+      "heroImage": "",
+      "description": "",
+      "features": {
+        "fireRating": true,
+        "soundproofing": false,
+        "mdf": true,
+        "greenguard": false,
+        "curvedProfile": true
+      },
+      "specs": {
+        "dimensions": "4' x 8' (standard)",
+        "thickness": "Varies by pattern",
+        "finish": "Raw, primed, or factory-finished options",
+        "patternDepth": "Varies by pattern"
+      },
+      "installMethods": [],
+      "applications": {
+        "commercial": true,
+        "residential": true,
+        "interior": true,
+        "exterior": false
+      },
+      "pricing": {
+        "startingAt": 29,
+        "unit": "sqft"
+      },
+      "gallery": []
+    }
+  }
+}
