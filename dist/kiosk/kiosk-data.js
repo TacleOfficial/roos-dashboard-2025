@@ -13,7 +13,9 @@ window.EXPO_DATA = {
           'duchateau-ligne',
           'duchateau-celestio-legno',
           'interlam-carved-screens',
-          'interlam-metal-screens'
+          'interlam-metal-screens',
+          'alu-wood',
+          'embrace'
   
           // add other architectural brands here later
         ]
@@ -1661,6 +1663,193 @@ window.EXPO_DATA = {
     }
   ]
 },
+
+
+// Paste this inside your brands object:
+'alu-wood': {
+  id: 'alu-wood',
+  categoryId: 'architectural',
+
+  // tile image used on the collections screen
+  tileImage: 'https://ccfssflq.photoncache.com/wp-content/uploads/2024/03/086_AluWood_Lemvig_DSC00397_June-08-2023-683x1024.jpg',
+
+  // brand detail
+  name: 'Aluwood',
+  heroImage: 'https://ccfssflq.photoncache.com/wp-content/uploads/2024/03/086_AluWood_Lemvig_DSC00397_June-08-2023-683x1024.jpg',
+  description:
+    'Aluwood lets you make the most of your outdoor spaces across full facades, accent walls, terraces, fences, ceilings and more.',
+
+  // Which feature icons to light up
+  features: {
+    fireRating: true,
+    soundproofing: false,
+    mdf: false,
+    greenguard: false,
+    curvedProfile: false
+  },
+
+  // Specs: use null to hide a row, string to show it
+  specs: {
+    dimensions: '17.5" x 94"',
+    thickness: '1.29"',
+    finish: 'Brown, Black, Grey, Alu',
+    patternDepth: '6.5lbs per panel'
+  },
+
+  // Installation methods to show in the “Installation Methods” card
+  installMethods: [
+    {
+      id: 'screw-mount',
+      label: 'Outdoor Screw Attachement',
+      icon: 'https://cdn.prod.website-files.com/6384dfcf53b8233ce7ee1be4/691f5d8602c11b3df898dc1e_image%205.png'
+    }
+  ],
+
+  // Applications toggles the green/grey pills
+  applications: {
+    commercial: true,
+    residential: true,
+    interior: true,
+    exterior: true
+  },
+
+  // Price card
+  pricing: {
+    startingAt: null,
+    unit: ''
+  },
+
+  // Gallery: first 4 become thumbnails; the rest feed the X+ count
+  gallery: [
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2024/03/086_AluWood_Lemvig_DSC00397_June-08-2023-683x1024.jpg',
+      caption: 'Outdoor Facade in Thermally Treated Brown'
+    },
+        {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2024/03/aluwoodsamples-brun-close-2048x2048.jpg',
+      caption: 'Aluwood Brown Close up'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2025/01/AluWood-Oiled-Brown-Texture-Diagonal-Patent-2048x2048.jpg',
+      caption: 'Oiled Brown Full Panel'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2024/03/patent-Diagonal-Aluwood-Brown.jpg',
+      caption: 'Brown Full Panel'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2025/01/AluWood-Black-texture-Diagonal-Patent-2048x2048.jpg',
+      caption: 'Black Full Panel'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2025/01/AluWood-Grey-Texture-Patent-Diagonal-2048x2048.jpg',
+      caption: 'Grey Full Panel'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2024/03/Diagonal-Aluwood-Plain.png',
+      caption: 'Black No Wood'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2024/03/Productpicture_aluwood_brown2.jpeg',
+      caption: 'Aluwood Brown used as a outdoor fence'
+    },
+    
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/9282bdbe-0913-48c2-9df1-d11e598743fd-1024x683.png',
+      caption: 'Outdoor Facade around Front Door in Thermally Treated Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/aluwood-garage_-ken-reichel-54-1024x683.jpg',
+      caption: 'Aluwood Sample in Aluwood Black'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/utekok5-683x1024.jpg',
+      caption: 'Aluwood interior installation in Thermally Treated Black'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/IMG_0283-1024x768.jpg',
+      caption: 'Outdoor Facade around Building in Thermally Treated Brown (1/2)'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/IMG_0288-1024x768.jpg',
+      caption: 'Outdoor Facade around Building in Thermally Treated Brown (2/2)'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/76b183eb-f39f-44a7-aae4-ba6990978d79-1024x683.png',
+      caption: 'Outdoor Facade around Building in Thermally Treated Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/AluWood-SE-@idaskvm-2-576x1024.jpeg',
+      caption: 'Outdoor Fence Installation in Thermally Treated Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/4Z4A9666-1024x683.jpg',
+      caption: 'Outdoor Gazebo Installation in Thermally Treated Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/PHOTO-2025-10-23-11-50-47-6-1024x683.jpg',
+      caption: 'Outdoor Garage Installation in Thermally Treated Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/nyvagg6-1024x683.jpg',
+      caption: 'Outdoor BBQ Area in Thermally Treated Black'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/bd06d37e-1d28-4451-82a3-b044af13e999-1024x768.jpg',
+      caption: 'Outdoor Area in Thermally Treated Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/8890723757834313504-1024x478.jpg',
+      caption: 'Outdoor Patio in Thermally Treated Oil Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/IMG_9480-768x1024.jpg',
+      caption: 'Indoor Pool in Thermally Treated Oil Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/WhatsApp-Image-2025-10-02-at-11.22.44-1024x1024.jpeg',
+      caption: 'Outdoor Gazebo Facade in Thermally Treated Oil Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2025/08/aluwood-brown-mads-house-04-scaled-2-683x1024.jpg',
+      caption: 'Outdoor Building Facade in Thermally Treated Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2024/03/092_AluWood_Lemvig_DSC00403_June-08-2023-1024x683.jpg',
+      caption: 'Outdoor Building Facade Close Up'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2025/02/aluwood-brown-mads-house-1024x683.jpg',
+      caption: 'Outdoor Building Facade'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2025/02/woodupp-aluwood-brown-1024x683.jpg',
+      caption: 'Outdoor Building Facade'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/aluwood-brown-out.png',
+      caption: 'Outdoor Patio Ceiling in Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/aluwood-garage_-ken-reichel-20-2048x1365.jpg',
+      caption: 'Garage Installation Aluwood Black'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2025/11/028_AluWood_Lemvig_DSC00338_June-08-2023-scaled.jpg',
+      caption: 'Exterior Home Installation Oiled Brown'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/utekok7-1-scaled.jpg',
+      caption: 'Exterior BBQ Pit Area in Aluwood Black'
+    },
+    {
+      src: 'https://ccfssflq.photoncache.com/wp-content/uploads/2026/02/utekok7-1-scaled.jpg',
+      caption: 'Exterior BBQ Pit Area in Aluwood Black'
+    }
+  ]
+},
+
+
 // Paste this inside your brands object:
 'ezobord': {
   id: 'ezobord',
